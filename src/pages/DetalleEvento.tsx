@@ -17,13 +17,7 @@ import { RUTAS } from '../lib/rutas'
 import { formatearFechaHora } from '../lib/formato'
 import { ApiError } from '../lib/http'
 import { nombreCategoria } from '../funcionalidades/eventos/formato'
-
-function imagenEvento(categoria: string): string {
-  if (categoria === 'MUSIC') return '/images/event-music.jpg'
-  if (categoria === 'SPORTS') return '/images/event-sports.jpg'
-  if (categoria === 'TECHNOLOGY' || categoria === 'EDUCATION') return '/images/event-tech.jpg'
-  return '/images/event-culture.jpg'
-}
+import VisualEvento from '../componentes/VisualEvento'
 
 export default function DetalleEvento() {
   const { eventCode = '' } = useParams()
@@ -51,12 +45,7 @@ export default function DetalleEvento() {
       <Link to={RUTAS.eventos} className="text-sm font-semibold text-marca-600 dark:text-marca-500">← Volver a la cartelera</Link>
       <article className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
         <div className="h-56 overflow-hidden sm:h-72">
-          <img
-            src={data.imageUrl?.trim() || imagenEvento(data.category)}
-            alt=""
-            onError={(event) => { event.currentTarget.src = imagenEvento(data.category) }}
-            className="h-full w-full object-cover"
-          />
+          <VisualEvento categoria={data.category} className="h-full" />
         </div>
         <div className="grid gap-8 p-6 md:grid-cols-[1fr_280px] md:p-8">
           <div className="space-y-5">

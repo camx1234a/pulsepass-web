@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import clsx from 'clsx'
 import { clasesBoton } from '../componentes/estilos'
@@ -36,6 +36,7 @@ export default function Navbar() {
   const { sesion, tieneRol, cerrarSesion } = useAuth()
   const navigate = useNavigate()
   const [abierto, setAbierto] = useState(false)
+  const botonMenuRef = useRef<HTMLButtonElement>(null)
   const [temaOscuro, setTemaOscuro] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   useEffect(() => {
@@ -45,7 +46,10 @@ export default function Navbar() {
   useEffect(() => {
     if (!abierto) return
     const alTeclear = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAbierto(false)
+      if (e.key === 'Escape') {
+        setAbierto(false)
+        botonMenuRef.current?.focus()
+      }
     }
     document.addEventListener('keydown', alTeclear)
     return () => document.removeEventListener('keydown', alTeclear)
@@ -86,6 +90,7 @@ export default function Navbar() {
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
           <button
+            ref={botonMenuRef}
             type="button"
             aria-label={temaOscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             aria-pressed={temaOscuro}

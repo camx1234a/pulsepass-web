@@ -58,3 +58,22 @@ export const IconoBandeja = (p: ComponentProps<'svg'>) => (
     <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
   </Icono>
 )
+
+export const IconoMusica = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><path d="M9 18V5l10-2v12" /><circle cx="6" cy="18" r="3" /><circle cx="16" cy="15" r="3" /></Icono>
+)
+export const IconoDeporte = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><circle cx="12" cy="12" r="9" /><path d="M5.4 8.5h13.2M5.4 15.5h13.2M12 3c2.2 2.5 3.3 5.5 3.3 9S14.2 18.5 12 21c-2.2-2.5-3.3-5.5-3.3-9S9.8 5.5 12 3Z" /></Icono>
+)
+export const IconoTecnologia = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></Icono>
+)
+export const IconoEducacion = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><path d="m3 9 9-5 9 5-9 5-9-5Z" /><path d="M7 11.5v4.2c2.8 2.1 7.2 2.1 10 0v-4.2" /></Icono>
+)
+export const IconoCultura = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><circle cx="12" cy="12" r="9" /><path d="M12 3v18M3 12h18M5.6 5.6c3.5 3.5 9.3 3.5 12.8 0M5.6 18.4c3.5-3.5 9.3-3.5 12.8 0" /></Icono>
+)
+export const IconoEntretenimiento = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m10 9 5 3-5 3V9Z" /></Icono>
+)
