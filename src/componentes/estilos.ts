@@ -14,9 +14,12 @@ const variantes: Record<VarianteBoton, string> = {
     'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 ' +
     'dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800',
   peligro: 'bg-red-600 text-white hover:bg-red-700',
-  fantasma: 'text-marca-600 hover:bg-marca-50 dark:text-marca-500 dark:hover:bg-slate-800',
+  fantasma:
+    'text-marca-600 hover:bg-marca-50 dark:text-marca-500 dark:hover:bg-slate-800',
 }
 
 /** Para dar apariencia de botón a un <Link>. */
-export const clasesBoton = (variante: VarianteBoton = 'primario', extra?: string): string =>
-  clsx(base, variantes[variante], extra)
+export const clasesBoton = (
+  variante: VarianteBoton = 'primario',
+  extra?: string,
+): string => clsx(base, variantes[variante], extra)

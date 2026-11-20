@@ -8,7 +8,10 @@ export const listarArtistasActivos = (signal?: AbortSignal) =>
 export const obtenerArtista = (id: number, signal?: AbortSignal) =>
   solicitar(`/artists/${id}`, { esquema: ArtistaSchema, signal })
 
-export const obtenerArtistaPorNombre = (stageName: string, signal?: AbortSignal) =>
+export const obtenerArtistaPorNombre = (
+  stageName: string,
+  signal?: AbortSignal,
+) =>
   solicitar('/artists/by-stage-name', {
     params: { stageName },
     esquema: ArtistaSchema,

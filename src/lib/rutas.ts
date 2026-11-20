@@ -13,9 +13,12 @@ export const RUTAS = {
   cuenta: '/cuenta',
   misTickets: '/mis-tickets',
   ticket: (ticketCode: string) => `/mis-tickets/${c(ticketCode)}`,
-  confirmacionCompra: (ticketCode: string) => `/compra/confirmacion/${c(ticketCode)}`,
+  confirmacionCompra: (ticketCode: string) =>
+    `/compra/confirmacion/${c(ticketCode)}`,
   staffValidacion: '/staff/validacion',
-  staffTicketsPagados: (eventCode: string) => `/staff/eventos/${c(eventCode)}/tickets`,
+  staffTicketsPagadosLista: '/staff/tickets-pagados',
+  staffTicketsPagados: (eventCode: string) =>
+    `/staff/eventos/${c(eventCode)}/tickets`,
   adminEventos: '/admin/eventos',
   adminNuevoEvento: '/admin/eventos/nuevo',
   adminEvento: (eventCode: string) => `/admin/eventos/${c(eventCode)}`,

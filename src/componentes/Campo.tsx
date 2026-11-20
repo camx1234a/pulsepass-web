@@ -7,16 +7,29 @@ interface CampoProps extends ComponentProps<'input'> {
   ayuda?: string
 }
 
-export default function Campo({ etiqueta, error, ayuda, id, className, ...resto }: CampoProps) {
+export default function Campo({
+  etiqueta,
+  error,
+  ayuda,
+  id,
+  className,
+  ...resto
+}: CampoProps) {
   const idAuto = useId()
   const idCampo = id ?? idAuto
   const idError = `${idCampo}-error`
   const idAyuda = `${idCampo}-ayuda`
-  const describedBy = [ayuda ? idAyuda : null, error ? idError : null].filter(Boolean).join(' ') || undefined
+  const describedBy =
+    [ayuda ? idAyuda : null, error ? idError : null]
+      .filter(Boolean)
+      .join(' ') || undefined
 
   return (
     <div className="space-y-1">
-      <label htmlFor={idCampo} className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+      <label
+        htmlFor={idCampo}
+        className="block text-sm font-medium text-slate-900 dark:text-slate-100"
+      >
         {etiqueta}
       </label>
       <input
@@ -25,14 +38,22 @@ export default function Campo({ etiqueta, error, ayuda, id, className, ...resto 
         aria-describedby={describedBy}
         className={clsx(
           'min-h-11 w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 dark:bg-slate-900 dark:text-slate-100',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600',
+          'focus-visible:outline-marca-600 focus-visible:outline-2 focus-visible:outline-offset-2',
           error ? 'border-red-500' : 'border-slate-300 dark:border-slate-700',
           className,
         )}
         {...resto}
       />
-      {ayuda && <p id={idAyuda} className="text-xs text-slate-600 dark:text-slate-400">{ayuda}</p>}
-      {error && <p id={idError} className="text-xs text-red-700">{error}</p>}
+      {ayuda && (
+        <p id={idAyuda} className="text-xs text-slate-600 dark:text-slate-400">
+          {ayuda}
+        </p>
+      )}
+      {error && (
+        <p id={idError} className="text-xs text-red-700">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

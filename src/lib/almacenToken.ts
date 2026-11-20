@@ -3,7 +3,10 @@ import { z } from 'zod'
 // Solo el token y su vencimiento. Nunca localStorage ni cookies; nunca en la URL ni en consola.
 const CLAVE = 'pulsepass.token'
 
-const SesionTokenSchema = z.object({ token: z.string().min(1), expiraEn: z.number() })
+const SesionTokenSchema = z.object({
+  token: z.string().min(1),
+  expiraEn: z.number(),
+})
 export type SesionToken = z.infer<typeof SesionTokenSchema>
 
 let enMemoria: SesionToken | null = null
@@ -50,4 +53,5 @@ export function leerSesionToken(): SesionToken | null {
   return null
 }
 
-export const obtenerToken = (): string | null => leerSesionToken()?.token ?? null
+export const obtenerToken = (): string | null =>
+  leerSesionToken()?.token ?? null

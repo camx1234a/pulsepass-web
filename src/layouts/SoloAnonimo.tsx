@@ -10,7 +10,12 @@ export default function SoloAnonimo() {
 
   if (sesion.estado === 'cargando') return <Cargando />
   if (sesion.estado === 'autenticado') {
-    return <Navigate to={leerEstadoLogin(ubicacion.state).desde ?? RUTAS.inicio} replace />
+    return (
+      <Navigate
+        to={leerEstadoLogin(ubicacion.state).desde ?? RUTAS.inicio}
+        replace
+      />
+    )
   }
   return <Outlet />
 }

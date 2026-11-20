@@ -6,4 +6,7 @@ export const listarSedesActivas = (signal?: AbortSignal) =>
   solicitar('/venues/active', { esquema: z.array(SedeSchema), signal })
 
 export const obtenerSede = (code: string, signal?: AbortSignal) =>
-  solicitar(`/venues/${encodeURIComponent(code)}`, { esquema: SedeSchema, signal })
+  solicitar(`/venues/${encodeURIComponent(code)}`, {
+    esquema: SedeSchema,
+    signal,
+  })

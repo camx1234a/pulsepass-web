@@ -22,7 +22,8 @@ export default function MenuUsuario({ usuario, onSalir }: MenuUsuarioProps) {
       if (e.key === 'Escape') setAbierto(false)
     }
     const alHacerClic = (e: MouseEvent) => {
-      if (contenedor.current && !contenedor.current.contains(e.target as Node)) setAbierto(false)
+      if (contenedor.current && !contenedor.current.contains(e.target as Node))
+        setAbierto(false)
     }
     document.addEventListener('keydown', alTeclear)
     document.addEventListener('mousedown', alHacerClic)
@@ -46,7 +47,7 @@ export default function MenuUsuario({ usuario, onSalir }: MenuUsuarioProps) {
       >
         <span
           aria-hidden="true"
-          className="flex size-8 items-center justify-center rounded-full bg-marca-50 text-xs font-bold text-marca-700"
+          className="bg-marca-50 text-marca-700 flex size-8 items-center justify-center rounded-full text-xs font-bold"
         >
           {usuario.username.charAt(0).toUpperCase()}
         </span>
@@ -59,11 +60,25 @@ export default function MenuUsuario({ usuario, onSalir }: MenuUsuarioProps) {
           id={idPanel}
           className="absolute right-0 z-50 mt-2 w-48 rounded-xl bg-white p-1 shadow-lg ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
         >
-          <Link to={RUTAS.cuenta} onClick={() => setAbierto(false)} className={claseItem}>Mi cuenta</Link>
+          <Link
+            to={RUTAS.cuenta}
+            onClick={() => setAbierto(false)}
+            className={claseItem}
+          >
+            Mi cuenta
+          </Link>
           {esUser && (
-            <Link to={RUTAS.misTickets} onClick={() => setAbierto(false)} className={claseItem}>Mis tickets</Link>
+            <Link
+              to={RUTAS.misTickets}
+              onClick={() => setAbierto(false)}
+              className={claseItem}
+            >
+              Mis tickets
+            </Link>
           )}
-          <button type="button" onClick={onSalir} className={claseItem}>Salir</button>
+          <button type="button" onClick={onSalir} className={claseItem}>
+            Salir
+          </button>
         </div>
       )}
     </div>

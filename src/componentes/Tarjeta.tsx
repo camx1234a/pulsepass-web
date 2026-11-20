@@ -1,7 +1,10 @@
 import type { ComponentProps } from 'react'
 import clsx from 'clsx'
 
-export default function Tarjeta({ className, ...resto }: ComponentProps<'div'>) {
+export default function Tarjeta({
+  className,
+  ...resto
+}: ComponentProps<'div'>) {
   return (
     <div
       className={clsx(

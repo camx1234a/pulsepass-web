@@ -11,7 +11,9 @@ interface PaginaCodigoProps {
 export default function PaginaCodigo({ codigo, mensaje }: PaginaCodigoProps) {
   return (
     <Tarjeta className="mx-auto max-w-lg p-8 text-center">
-      <h1 className="font-titulo text-6xl font-bold text-marca-700">{codigo}</h1>
+      <h1 className="font-titulo text-marca-700 text-6xl font-bold">
+        {codigo}
+      </h1>
       <p className="mt-3">{mensaje}</p>
       <Link to={RUTAS.inicio} className={clasesBoton('primario', 'mt-6')}>
         Volver al inicio

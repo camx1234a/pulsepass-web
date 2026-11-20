@@ -4,7 +4,10 @@ import { describe, expect, it } from 'vitest'
 import type { ReactNode } from 'react'
 import RutaPorRol from '../layouts/RutaPorRol'
 import RutaProtegida from '../layouts/RutaProtegida'
-import { AuthContext, type ContextoAuth } from '../funcionalidades/auth/contexto'
+import {
+  AuthContext,
+  type ContextoAuth,
+} from '../funcionalidades/auth/contexto'
 
 const anonima: ContextoAuth = {
   sesion: { estado: 'anonimo' },
@@ -19,7 +22,12 @@ const user: ContextoAuth = {
     estado: 'autenticado',
     token: 'token',
     expiraEn: Date.now() + 60_000,
-    usuario: { userId: 1, username: 'andrea', email: 'andrea@example.test', roles: ['USER'] },
+    usuario: {
+      userId: 1,
+      username: 'andrea',
+      email: 'andrea@example.test',
+      roles: ['USER'],
+    },
   },
   tieneRol: (...roles) => roles.includes('USER'),
 }

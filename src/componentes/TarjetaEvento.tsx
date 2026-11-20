@@ -11,11 +11,14 @@ export default function TarjetaEvento({ evento }: { evento: EventoResumen }) {
   return (
     <Link
       to={RUTAS.evento(evento.eventCode)}
-      className="group block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-marca-600"
+      className="group focus-visible:outline-marca-600 block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4"
     >
       <Tarjeta className="h-full overflow-hidden transition-transform group-hover:-translate-y-1">
         <div className="relative h-44 overflow-hidden">
-          <VisualEvento categoria={evento.category} className="h-full transition-transform duration-500 group-hover:scale-105" />
+          <VisualEvento
+            categoria={evento.category}
+            className="h-full transition-transform duration-500 group-hover:scale-105"
+          />
           <span className="absolute top-3 left-3 rounded-full bg-slate-950/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
             {nombreCategoria(evento.category)}
           </span>
@@ -28,8 +31,10 @@ export default function TarjetaEvento({ evento }: { evento: EventoResumen }) {
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {formatearFechaHora(evento.eventDate)}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{evento.venueName}</p>
-          <span className="inline-block text-sm font-semibold text-marca-600 dark:text-marca-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {evento.venueName}
+          </p>
+          <span className="text-marca-600 dark:text-marca-500 inline-block text-sm font-semibold">
             Ver evento →
           </span>
         </div>

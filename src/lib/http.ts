@@ -7,7 +7,11 @@ export class ApiError extends Error {
   readonly status: number // 0 = fallo de red
   readonly details: Record<string, string>
 
-  constructor(status: number, message: string, details: Record<string, string> = {}) {
+  constructor(
+    status: number,
+    message: string,
+    details: Record<string, string> = {},
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
@@ -43,19 +47,27 @@ export function registrarAlNoAutorizado(fn: () => void): () => void {
   }
 }
 
-async function construirError(respuesta: Response, habiaToken: boolean): Promise<ApiError> {
+async function construirError(
+  respuesta: Response,
+  habiaToken: boolean,
+): Promise<ApiError> {
   // Un 401 SIN token (p. ej. login incorrecto) no es una sesión expirada.
   if (respuesta.status === 401 && habiaToken) alNoAutorizado?.()
 
   // 5xx: nunca se muestra el mensaje del servidor.
-  if (respuesta.status >= 500) return new ApiError(respuesta.status, MENSAJE_INESPERADO)
+  if (respuesta.status >= 500)
+    return new ApiError(respuesta.status, MENSAJE_INESPERADO)
 
   const porDefecto = MENSAJES_POR_ESTADO[respuesta.status] ?? MENSAJE_INESPERADO
   try {
     const cuerpo: unknown = JSON.parse(await respuesta.text())
     const valido = ErrorResponseSchema.safeParse(cuerpo)
     if (valido.success) {
-      return new ApiError(respuesta.status, valido.data.message, valido.data.details ?? {})
+      return new ApiError(
+        respuesta.status,
+        valido.data.message,
+        valido.data.details ?? {},
+      )
     }
   } catch {
     // cuerpo vacío o no-JSON: se usa el mensaje genérico
@@ -71,7 +83,10 @@ interface OpcionesSolicitud<T> {
   signal?: AbortSignal
 }
 
-export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud<T>): Promise<T> {
+export async function solicitar<T>(
+  ruta: string,
+  opciones: OpcionesSolicitud<T>,
+): Promise<T> {
   const { esquema, metodo = 'GET', params, cuerpo, signal } = opciones
   const token = obtenerToken()
 
@@ -89,7 +104,8 @@ export async function solicitar<T>(ruta: string, opciones: OpcionesSolicitud<T>)
       signal,
     })
   } catch (error: unknown) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof DOMException && error.name === 'AbortError')
+      throw error
     throw new ApiError(0, MENSAJE_RED)
   }
 

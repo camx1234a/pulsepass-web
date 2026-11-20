@@ -14,7 +14,13 @@ export default function RutaPorRol({ roles }: RutaPorRolProps) {
 
   if (sesion.estado === 'cargando') return <Cargando />
   if (sesion.estado === 'anonimo') {
-    return <Navigate to={RUTAS.login} replace state={{ desde: ubicacion.pathname }} />
+    return (
+      <Navigate
+        to={RUTAS.login}
+        replace
+        state={{ desde: ubicacion.pathname }}
+      />
+    )
   }
   if (!tieneRol(...roles)) return <Navigate to={RUTAS.sinPermisos} replace />
   return <Outlet />

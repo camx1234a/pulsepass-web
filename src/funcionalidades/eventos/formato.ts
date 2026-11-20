@@ -9,4 +9,5 @@ const nombresCategoria: Record<EventCategory, string> = {
   ENTERTAINMENT: 'Entretenimiento',
 }
 
-export const nombreCategoria = (categoria: EventCategory): string => nombresCategoria[categoria]
+export const nombreCategoria = (categoria: EventCategory): string =>
+  nombresCategoria[categoria]

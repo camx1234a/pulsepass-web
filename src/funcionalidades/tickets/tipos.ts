@@ -1,8 +1,18 @@
 import { z } from 'zod'
 import { FechaHoraLocalSchema } from '../../lib/esquemas'
 
-export const TicketTypeSchema = z.enum(['GENERAL', 'VIP', 'BACKSTAGE', 'STUDENT'])
-export const TicketStatusSchema = z.enum(['RESERVED', 'PAID', 'CANCELLED', 'USED'])
+export const TicketTypeSchema = z.enum([
+  'GENERAL',
+  'VIP',
+  'BACKSTAGE',
+  'STUDENT',
+])
+export const TicketStatusSchema = z.enum([
+  'RESERVED',
+  'PAID',
+  'CANCELLED',
+  'USED',
+])
 export type TicketType = z.infer<typeof TicketTypeSchema>
 export type TicketStatus = z.infer<typeof TicketStatusSchema>
 

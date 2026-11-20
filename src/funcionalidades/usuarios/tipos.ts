@@ -23,13 +23,19 @@ export const RegistroSchema = z.object({
     .string()
     .trim()
     .min(1, 'Ingresa un nombre de usuario')
-    .refine((v) => !v.includes('@'), 'El nombre de usuario no puede contener @'),
+    .refine(
+      (v) => !v.includes('@'),
+      'El nombre de usuario no puede contener @',
+    ),
   email: z.email('Correo electrónico inválido'),
   firstName: z.string().trim().min(1, 'Ingresa tus nombres'),
   lastName: z.string().trim().min(1, 'Ingresa tus apellidos'),
   phone: z.string().optional(),
   city: z.string().optional(),
-  birthDate: FechaSchema.refine((v) => v <= fechaHoyLocal(), 'La fecha no puede ser futura'),
+  birthDate: FechaSchema.refine(
+    (v) => v <= fechaHoyLocal(),
+    'La fecha no puede ser futura',
+  ),
   password: z
     .string()
     .refine((v) => caracteres(v) >= 12, 'Mínimo 12 caracteres')

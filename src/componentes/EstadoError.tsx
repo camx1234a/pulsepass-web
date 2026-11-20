@@ -6,7 +6,10 @@ interface EstadoErrorProps {
   onReintentar?: () => void
 }
 
-export default function EstadoError({ mensaje, onReintentar }: EstadoErrorProps) {
+export default function EstadoError({
+  mensaje,
+  onReintentar,
+}: EstadoErrorProps) {
   return (
     <div className="space-y-3 text-center">
       <Aviso tipo="error">{mensaje}</Aviso>

@@ -12,7 +12,7 @@ export type LoginForm = z.infer<typeof LoginSchema>
 export const AuthResponseSchema = z.object({
   accessToken: z.string().min(1),
   tokenType: z.literal('Bearer'),
-  expiresIn: z.number(), 
+  expiresIn: z.number(),
 })
 export type AuthResponse = z.infer<typeof AuthResponseSchema>
 
@@ -36,4 +36,9 @@ export interface UsuarioAutenticado {
 export type Sesion =
   | { estado: 'cargando' }
   | { estado: 'anonimo'; motivo?: 'expirada' } // RutaProtegida lo pasa a /login como state.motivo
-  | { estado: 'autenticado'; token: string; expiraEn: number; usuario: UsuarioAutenticado }
+  | {
+      estado: 'autenticado'
+      token: string
+      expiraEn: number
+      usuario: UsuarioAutenticado
+    }

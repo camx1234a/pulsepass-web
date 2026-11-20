@@ -16,37 +16,73 @@ export default function DetalleArtista() {
   const stageName = artista.isSuccess ? artista.data.stageName : ''
   const eventos = useEventosPorArtista(stageName)
 
-  if (!/^\d+$/.test(id) || !Number.isInteger(parsed)) return <PaginaCodigo codigo="404" mensaje="No encontramos este artista." />
+  if (!/^\d+$/.test(id) || !Number.isInteger(parsed))
+    return <PaginaCodigo codigo="404" mensaje="No encontramos este artista." />
   if (artista.isPending) return <Cargando lineas={8} />
   if (artista.isError) {
-    if (artista.error instanceof ApiError && artista.error.status === 404) return <PaginaCodigo codigo="404" mensaje="No encontramos este artista." />
-    return <EstadoError mensaje={artista.error.message} onReintentar={() => artista.refetch()} />
+    if (artista.error instanceof ApiError && artista.error.status === 404)
+      return (
+        <PaginaCodigo codigo="404" mensaje="No encontramos este artista." />
+      )
+    return (
+      <EstadoError
+        mensaje={artista.error.message}
+        onReintentar={() => artista.refetch()}
+      />
+    )
   }
 
   return (
     <div className="space-y-8">
-      <Link to={RUTAS.artistas} className="text-sm font-semibold text-marca-600 dark:text-marca-500">← Todos los artistas</Link>
+      <Link
+        to={RUTAS.artistas}
+        className="text-marca-600 dark:text-marca-500 text-sm font-semibold"
+      >
+        ← Todos los artistas
+      </Link>
       <header className="flex items-center gap-5">
-        <span className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-marca-600 text-3xl font-bold text-white">
+        <span className="bg-marca-600 relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full text-3xl font-bold text-white">
           {artista.data.stageName.slice(0, 1).toUpperCase()}
           {artista.data.imageUrl && (
             <img
               src={artista.data.imageUrl}
               alt=""
-              onError={(event) => { event.currentTarget.style.display = 'none' }}
+              onError={(event) => {
+                event.currentTarget.style.display = 'none'
+              }}
               className="absolute inset-0 h-full w-full object-cover"
             />
           )}
         </span>
-        <div><h1 className="text-3xl font-bold">{artista.data.stageName}</h1><p className="text-slate-500">{[artista.data.genre, artista.data.country].filter(Boolean).join(' · ')}</p></div>
+        <div>
+          <h1 className="text-3xl font-bold">{artista.data.stageName}</h1>
+          <p className="text-slate-500">
+            {[artista.data.genre, artista.data.country]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        </div>
       </header>
       <section className="space-y-5" aria-labelledby="eventos-artista">
-        <h2 id="eventos-artista" className="text-2xl font-bold">Eventos asociados</h2>
+        <h2 id="eventos-artista" className="text-2xl font-bold">
+          Eventos asociados
+        </h2>
         {eventos.isPending && <Cargando lineas={4} />}
-        {eventos.isError && <EstadoError mensaje={eventos.error.message} onReintentar={() => eventos.refetch()} />}
-        {eventos.isSuccess && eventos.data.length === 0 && <EstadoVacio mensaje="Este artista no tiene eventos publicados" />}
+        {eventos.isError && (
+          <EstadoError
+            mensaje={eventos.error.message}
+            onReintentar={() => eventos.refetch()}
+          />
+        )}
+        {eventos.isSuccess && eventos.data.length === 0 && (
+          <EstadoVacio mensaje="Este artista no tiene eventos publicados" />
+        )}
         {eventos.isSuccess && eventos.data.length > 0 && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{eventos.data.map((evento) => <TarjetaEvento key={evento.id} evento={evento} />)}</div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {eventos.data.map((evento) => (
+              <TarjetaEvento key={evento.id} evento={evento} />
+            ))}
+          </div>
         )}
       </section>
     </div>

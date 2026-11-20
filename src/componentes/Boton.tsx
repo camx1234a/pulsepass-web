@@ -12,7 +12,7 @@ export default function Boton({
   disabled,
   className,
   children,
-  type = 'button', 
+  type = 'button',
   ...resto
 }: BotonProps) {
   return (

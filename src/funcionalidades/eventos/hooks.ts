@@ -1,23 +1,39 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { asociarArtista, crearEvento, listarEventosPorArtista, listarEventosPublicados, obtenerEvento, publicarEvento } from './api'
+import {
+  asociarArtista,
+  crearEvento,
+  listarEventosPorArtista,
+  listarEventosPublicados,
+  obtenerEvento,
+  publicarEvento,
+} from './api'
 import type { Evento } from './tipos'
 
 const KEY_CREADOS = ['admin', 'eventos-creados'] as const
 
-function actualizarEventoCreado(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+function actualizarEventoCreado(
+  queryClient: ReturnType<typeof useQueryClient>,
+  evento: Evento,
+) {
   const actuales = queryClient.getQueryData<Evento[]>(KEY_CREADOS) ?? []
   const otros = actuales.filter((item) => item.eventCode !== evento.eventCode)
   queryClient.setQueryData(KEY_CREADOS, [...otros, evento])
 }
 
-export async function invalidarCachePublicacion(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+export async function invalidarCachePublicacion(
+  queryClient: ReturnType<typeof useQueryClient>,
+  evento: Evento,
+) {
   await Promise.all([
     queryClient.setQueryData(['eventos', evento.eventCode], evento),
     queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
   ])
 }
 
-export async function invalidarCacheAsociacion(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+export async function invalidarCacheAsociacion(
+  queryClient: ReturnType<typeof useQueryClient>,
+  evento: Evento,
+) {
   await Promise.all([
     actualizarEventoCreado(queryClient, evento),
     queryClient.setQueryData(['eventos', evento.eventCode], evento),
@@ -49,6 +65,7 @@ export function useEvento(eventCode: string) {
     queryKey: ['eventos', eventCode],
     queryFn: ({ signal }) => obtenerEvento(eventCode, signal),
     enabled: eventCode.length > 0,
+    staleTime: 30_000,
   })
 }
 
@@ -57,6 +74,7 @@ export function useEventosPorArtista(stageName: string | null) {
     queryKey: ['eventos', 'artista', stageName],
     queryFn: ({ signal }) => listarEventosPorArtista(stageName ?? '', signal),
     enabled: stageName !== null && stageName.length > 0,
+    staleTime: 60_000,
   })
 }
 
@@ -85,7 +103,13 @@ export function usePublicarEvento() {
 export function useAsociarArtista() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ eventCode, artistId }: { eventCode: string; artistId: number }) => asociarArtista(eventCode, artistId),
+    mutationFn: ({
+      eventCode,
+      artistId,
+    }: {
+      eventCode: string
+      artistId: number
+    }) => asociarArtista(eventCode, artistId),
     onSuccess: async (evento) => {
       await invalidarCacheAsociacion(queryClient, evento)
     },

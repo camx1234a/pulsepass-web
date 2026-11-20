@@ -8,7 +8,12 @@ interface ModalProps {
   children: ReactNode
 }
 
-export default function Modal({ abierto, titulo, onCerrar, children }: ModalProps) {
+export default function Modal({
+  abierto,
+  titulo,
+  onCerrar,
+  children,
+}: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const cerrarRef = useRef<HTMLButtonElement>(null)
   const activadorRef = useRef<HTMLElement | null>(null)
@@ -18,7 +23,10 @@ export default function Modal({ abierto, titulo, onCerrar, children }: ModalProp
     const dialogo = ref.current
     if (dialogo === null) return
     if (abierto && !dialogo.open) {
-      activadorRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      activadorRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null
       dialogo.showModal()
       cerrarRef.current?.focus()
     }
@@ -42,8 +50,16 @@ export default function Modal({ abierto, titulo, onCerrar, children }: ModalProp
     >
       <div className="space-y-4 p-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 id={idTitulo} className="text-lg font-semibold">{titulo}</h2>
-          <button ref={cerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar" className="rounded p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600">
+          <h2 id={idTitulo} className="text-lg font-semibold">
+            {titulo}
+          </h2>
+          <button
+            ref={cerrarRef}
+            type="button"
+            onClick={onCerrar}
+            aria-label="Cerrar"
+            className="focus-visible:outline-marca-600 rounded p-1 focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
             <IconoCerrar />
           </button>
         </div>

@@ -12,17 +12,26 @@ export default function ErrorPagina() {
     return <PaginaCodigo codigo="404" mensaje="No encontramos esta página." />
   }
   if (isRouteErrorResponse(error) && error.status === 403) {
-    return <PaginaCodigo codigo="403" mensaje="No tienes permisos para acceder a esta sección." />
+    return (
+      <PaginaCodigo
+        codigo="403"
+        mensaje="No tienes permisos para acceder a esta sección."
+      />
+    )
   }
 
   // Mensaje seguro: nunca se muestra error.message ni el stack (sección 9.19).
   return (
     <Tarjeta className="mx-auto my-8 max-w-lg space-y-3 p-6">
       <h1 className="text-xl font-bold">¡Ups! Algo salió mal.</h1>
-      <p className="text-slate-600 dark:text-slate-400">Ocurrió un error inesperado. Inténtalo más tarde.</p>
+      <p className="text-slate-600 dark:text-slate-400">
+        Ocurrió un error inesperado. Inténtalo más tarde.
+      </p>
       <div className="flex gap-2">
         <Boton onClick={() => window.location.reload()}>Reintentar</Boton>
-        <Link to={RUTAS.inicio} className={clasesBoton('secundario')}>Volver al inicio</Link>
+        <Link to={RUTAS.inicio} className={clasesBoton('secundario')}>
+          Volver al inicio
+        </Link>
       </div>
     </Tarjeta>
   )
