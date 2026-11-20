@@ -5,6 +5,9 @@ import { UsuarioSchema, type RegistroForm } from './tipos'
 export const obtenerUsuarioPorUsername = (username: string, signal?: AbortSignal) =>
   solicitar('/users/by-username', { params: { username }, esquema: UsuarioSchema, signal })
 
+export const obtenerUsuarioPorEmail = (email: string, signal?: AbortSignal) =>
+  solicitar('/users/by-email', { params: { email }, esquema: UsuarioSchema, signal })
+
 export function registrarUsuario(datos: RegistroForm) {
   const { phone, city, ...obligatorios } = datos
   return solicitar('/users', {
