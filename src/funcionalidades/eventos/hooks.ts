@@ -3,18 +3,33 @@ import { asociarArtista, crearEvento, listarEventosPorArtista, listarEventosPubl
 import type { Evento } from './tipos'
 
 const KEY_CREADOS = ['admin', 'eventos-creados'] as const
-const eventosCreados = new Map<string, Evento>()
 
-function actualizarEventosCreados(queryClient: ReturnType<typeof useQueryClient>) {
-  queryClient.setQueryData(KEY_CREADOS, Array.from(eventosCreados.values()))
+function actualizarEventoCreado(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+  const actuales = queryClient.getQueryData<Evento[]>(KEY_CREADOS) ?? []
+  const otros = actuales.filter((item) => item.eventCode !== evento.eventCode)
+  queryClient.setQueryData(KEY_CREADOS, [...otros, evento])
+}
+
+export async function invalidarCachePublicacion(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+  await Promise.all([
+    queryClient.setQueryData(['eventos', evento.eventCode], evento),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
+  ])
+}
+
+export async function invalidarCacheAsociacion(queryClient: ReturnType<typeof useQueryClient>, evento: Evento) {
+  await Promise.all([
+    actualizarEventoCreado(queryClient, evento),
+    queryClient.setQueryData(['eventos', evento.eventCode], evento),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
+  ])
 }
 
 export function useEventosCreadosEnSesion() {
-  const queryClient = useQueryClient()
-  return useQuery({
+  return useQuery<Evento[]>({
     queryKey: KEY_CREADOS,
-    queryFn: async () => Array.from(eventosCreados.values()),
-    initialData: () => queryClient.getQueryData<Evento[]>(KEY_CREADOS) ?? [],
+    queryFn: async () => [],
+    initialData: [],
     staleTime: Infinity,
   })
 }
@@ -48,8 +63,7 @@ export function useCrearEvento() {
   return useMutation({
     mutationFn: crearEvento,
     onSuccess: async (evento) => {
-      eventosCreados.set(evento.eventCode, evento)
-      actualizarEventosCreados(queryClient)
+      actualizarEventoCreado(queryClient, evento)
       queryClient.setQueryData(['eventos', evento.eventCode], evento)
     },
   })
@@ -60,12 +74,8 @@ export function usePublicarEvento() {
   return useMutation({
     mutationFn: publicarEvento,
     onSuccess: async (evento) => {
-      eventosCreados.set(evento.eventCode, evento)
-      actualizarEventosCreados(queryClient)
-      await Promise.all([
-        queryClient.setQueryData(['eventos', evento.eventCode], evento),
-        queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
-      ])
+      actualizarEventoCreado(queryClient, evento)
+      await invalidarCachePublicacion(queryClient, evento)
     },
   })
 }
@@ -75,9 +85,7 @@ export function useAsociarArtista() {
   return useMutation({
     mutationFn: ({ eventCode, artistId }: { eventCode: string; artistId: number }) => asociarArtista(eventCode, artistId),
     onSuccess: async (evento) => {
-      eventosCreados.set(evento.eventCode, evento)
-      actualizarEventosCreados(queryClient)
-      queryClient.setQueryData(['eventos', evento.eventCode], evento)
+      await invalidarCacheAsociacion(queryClient, evento)
     },
   })
 }

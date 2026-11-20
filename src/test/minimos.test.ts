@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import { QueryClient } from '@tanstack/react-query'
+import { invalidarCacheCompra, invalidarCacheCancelacion, invalidarCacheUso } from '../funcionalidades/tickets/hooks'
+import { invalidarCachePublicacion, invalidarCacheAsociacion } from '../funcionalidades/eventos/hooks'
 import { http, HttpResponse } from 'msw'
 import { server } from './server'
 import { artista, evento, sede, ticket } from './datos'
@@ -176,6 +179,48 @@ describe('TEST-FE-VEN sedes', () => {
 })
 
 describe('TEST-FE-TKT tickets y compras', () => {
+  it('TEST-FE-TKT-CACHE-001 compra invalida tickets del usuario, pagados y evento', async () => {
+    const queryClient = new QueryClient()
+    const keys = [
+      ['tickets', ticket.userEmail],
+      ['tickets', 'pagados', ticket.eventCode],
+      ['eventos', ticket.eventCode],
+    ] as const
+    keys.forEach((key) => queryClient.setQueryData(key, []))
+
+    await invalidarCacheCompra(queryClient, ticket.userEmail, ticket)
+
+    keys.forEach((key) => expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true))
+  })
+
+  it('TEST-FE-TKT-CACHE-002 cancelación invalida colección y evento', async () => {
+    const queryClient = new QueryClient()
+    const keys = [
+      ['tickets', ticket.userEmail],
+      ['tickets', 'pagados', ticket.eventCode],
+      ['eventos', ticket.eventCode],
+    ] as const
+    keys.forEach((key) => queryClient.setQueryData(key, []))
+
+    await invalidarCacheCancelacion(queryClient, ticket.userEmail, { ...ticket, status: 'CANCELLED' })
+
+    keys.forEach((key) => expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true))
+  })
+
+  it('TEST-FE-TKT-CACHE-003 uso invalida tickets del usuario, pagados y evento', async () => {
+    const queryClient = new QueryClient()
+    const keys = [
+      ['tickets', ticket.userEmail],
+      ['tickets', 'pagados', ticket.eventCode],
+      ['eventos', ticket.eventCode],
+    ] as const
+    keys.forEach((key) => queryClient.setQueryData(key, []))
+
+    await invalidarCacheUso(queryClient, { ...ticket, status: 'USED' })
+
+    keys.forEach((key) => expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true))
+  })
+
   it('TEST-FE-TKT-001 compra válida devuelve 201 y ticket', async () => {
     await expect(comprarTicket({ userEmail: ticket.userEmail, eventCode: evento.eventCode, type: 'GENERAL' })).resolves.toEqual(ticket)
   })
@@ -250,6 +295,27 @@ describe('TEST-FE-STF staff', () => {
 })
 
 describe('TEST-FE-ADM administración', () => {
+  it('TEST-FE-ADM-CACHE-001 publicación actualiza detalle e invalida cartelera', async () => {
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(['eventos', evento.eventCode], evento)
+    queryClient.setQueryData(['eventos', 'publicados'], [evento])
+
+    await invalidarCachePublicacion(queryClient, { ...evento, status: 'PUBLISHED' })
+
+    expect(queryClient.getQueryData(['eventos', evento.eventCode])).toMatchObject({ status: 'PUBLISHED' })
+    expect(queryClient.getQueryState(['eventos', 'publicados'])?.isInvalidated).toBe(true)
+  })
+
+  it('TEST-FE-ADM-CACHE-002 asociación actualiza detalle e invalida cartelera', async () => {
+    const queryClient = new QueryClient()
+    queryClient.setQueryData(['eventos', 'publicados'], [evento])
+
+    await invalidarCacheAsociacion(queryClient, evento)
+
+    expect(queryClient.getQueryData(['eventos', evento.eventCode])).toEqual(evento)
+    expect(queryClient.getQueryState(['eventos', 'publicados'])?.isInvalidated).toBe(true)
+  })
+
   it('TEST-FE-ADM-001 crear evento con campos vacíos falla la validación', async () => {
     const { CrearEventoSchema } = await import('../funcionalidades/eventos/tipos')
     expect(CrearEventoSchema.safeParse({}).success).toBe(false)
@@ -285,6 +351,17 @@ describe('TEST-FE-ADM administración', () => {
 })
 
 describe('TEST-FE-GEN transversales', () => {
+  it('TEST-FE-GEN-006 limpiar el QueryClient elimina el historial administrativo creado', () => {
+    const queryClient = new QueryClient()
+    const key = ['admin', 'eventos-creados'] as const
+    queryClient.setQueryData(key, [evento])
+    expect(queryClient.getQueryData(key)).toEqual([evento])
+
+    queryClient.clear()
+
+    expect(queryClient.getQueryData(key)).toBeUndefined()
+  })
+
   it('TEST-FE-GEN-001 ruta inexistente responde 404', async () => {
     await expect(solicitar('/does-not-exist', { ...requestSchema })).rejects.toMatchObject({ status: 404 })
   })

@@ -18,11 +18,11 @@ const authAnonima: ContextoAuth = {
   tieneRol: () => false,
 }
 
-function renderWithProviders(ui: ReactNode, initialEntries = ['/']) {
+function renderWithProviders(ui: ReactNode, initialEntries = ['/'], auth: ContextoAuth = authAnonima) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
-      <AuthContext value={authAnonima}>
+      <AuthContext value={auth}>
         <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>
       </AuthContext>
     </QueryClientProvider>,
@@ -73,5 +73,62 @@ describe('páginas y formularios requeridos', () => {
     )
     expect(await screen.findByText('Luna Norte')).toBeInTheDocument()
     expect(screen.getByText('Centro Metropolitano')).toBeInTheDocument()
+  })
+
+  it('TEST-FE-EVT-005 oculta la compra cuando el evento no está publicado', async () => {
+    server.use(http.get('/api/events/EVT-001', () => HttpResponse.json({
+      id: 1,
+      eventCode: 'EVT-001',
+      name: 'Evento borrador',
+      category: 'MUSIC',
+      status: 'DRAFT',
+      eventDate: '2026-12-12T20:00',
+      venueCode: 'CMF-2026',
+      venueName: 'Centro Metropolitano',
+      imageUrl: null,
+      description: 'Borrador',
+      minimumAge: 18,
+      artists: [],
+    })))
+    renderWithProviders(
+      <Routes>
+        <Route path="/eventos/:eventCode" element={<DetalleEvento />} />
+      </Routes>,
+      ['/eventos/EVT-001'],
+    )
+    expect(await screen.findByText('Evento borrador')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Comprar entrada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Comprar entrada' })).not.toBeInTheDocument()
+  })
+
+  it('TEST-FE-ROL-001 STAFF autenticado recibe /403 al confirmar la compra', async () => {
+    const authStaff: ContextoAuth = {
+      sesion: {
+        estado: 'autenticado',
+        token: 'staff-token',
+        expiraEn: Date.now() + 60_000,
+        usuario: {
+          userId: 2,
+          username: 'staff',
+          email: 'staff@example.test',
+          roles: ['STAFF'],
+        },
+      },
+      iniciarSesion: async () => undefined,
+      cerrarSesion: () => undefined,
+      tieneRol: (...roles) => roles.includes('STAFF'),
+    }
+    const user = userEvent.setup()
+    renderWithProviders(
+      <Routes>
+        <Route path="/eventos/:eventCode" element={<DetalleEvento />} />
+        <Route path="/403" element={<p>sin permisos</p>} />
+      </Routes>,
+      ['/eventos/EVT-001'],
+      authStaff,
+    )
+    await user.click(await screen.findByRole('button', { name: 'Comprar entrada' }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar compra' }))
+    expect(await screen.findByText('sin permisos')).toBeInTheDocument()
   })
 })

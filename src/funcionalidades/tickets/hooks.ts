@@ -1,5 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { cancelarTicket, comprarTicket, listarTicketsPagados, listarTicketsPorUsuario, obtenerTicket, usarTicket } from './api'
+import type { Ticket } from './tipos'
+
+export async function invalidarCacheCompra(queryClient: ReturnType<typeof useQueryClient>, email: string, ticket: Ticket) {
+  await Promise.all([
+    queryClient.setQueryData(['ticket', ticket.ticketCode], ticket),
+    queryClient.invalidateQueries({ queryKey: ['tickets', email] }),
+    queryClient.invalidateQueries({ queryKey: ['tickets', 'pagados', ticket.eventCode] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', ticket.eventCode] }),
+  ])
+}
+
+export async function invalidarCacheCancelacion(queryClient: ReturnType<typeof useQueryClient>, email: string, ticket: Ticket) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['tickets', email] }),
+    queryClient.setQueryData(['ticket', ticket.ticketCode], ticket),
+    queryClient.invalidateQueries({ queryKey: ['tickets', 'pagados', ticket.eventCode] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', ticket.eventCode] }),
+  ])
+}
+
+export async function invalidarCacheUso(queryClient: ReturnType<typeof useQueryClient>, ticket: Ticket) {
+  await Promise.all([
+    queryClient.setQueryData(['ticket', ticket.ticketCode], ticket),
+    queryClient.invalidateQueries({ queryKey: ['tickets', 'pagados', ticket.eventCode] }),
+    queryClient.invalidateQueries({ queryKey: ['tickets', ticket.userEmail] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', ticket.eventCode] }),
+  ])
+}
 
 export function useMisTickets(email: string) {
   return useQuery({
@@ -29,9 +57,7 @@ export function useComprarTicket(email: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: comprarTicket,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tickets', email] })
-    },
+    onSuccess: (ticket) => invalidarCacheCompra(queryClient, email, ticket),
   })
 }
 
@@ -39,12 +65,7 @@ export function useCancelarTicket(email: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: cancelarTicket,
-    onSuccess: async (ticket) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['tickets', email] }),
-        queryClient.setQueryData(['ticket', ticket.ticketCode], ticket),
-      ])
-    },
+    onSuccess: (ticket) => invalidarCacheCancelacion(queryClient, email, ticket),
   })
 }
 
@@ -52,11 +73,6 @@ export function useUsarTicket() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: usarTicket,
-    onSuccess: async (ticket) => {
-      await Promise.all([
-        queryClient.setQueryData(['ticket', ticket.ticketCode], ticket),
-        queryClient.invalidateQueries({ queryKey: ['tickets', 'pagados', ticket.eventCode] }),
-      ])
-    },
+    onSuccess: (ticket) => invalidarCacheUso(queryClient, ticket),
   })
 }
