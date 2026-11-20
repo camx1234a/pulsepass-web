@@ -103,7 +103,6 @@ export default function Navbar() {
         </div>
 
         <button
-          ref={botonMenuRef}
           type="button"
           aria-expanded={abierto}
           aria-controls="menu-movil"
