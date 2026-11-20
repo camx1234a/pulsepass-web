@@ -44,6 +44,8 @@ export default function DetalleEvento() {
 
   const data = evento.data
   const compraHabilitada = data.status === 'PUBLISHED'
+  const puedeComprar = sesion.estado === 'anonimo' ||
+    (sesion.estado === 'autenticado' && sesion.usuario.roles.includes('USER'))
   return (
     <div className="space-y-6">
       <Link to={RUTAS.eventos} className="text-sm font-semibold text-marca-600 dark:text-marca-500">← Volver a la cartelera</Link>
@@ -101,12 +103,12 @@ export default function DetalleEvento() {
                 <div><dt className="text-slate-500">Edad mínima</dt><dd className="mt-1 font-semibold">{data.minimumAge} años</dd></div>
               </dl>
             </Tarjeta>
-            {compraHabilitada && sesion.estado === 'anonimo' && (
+            {compraHabilitada && puedeComprar && sesion.estado === 'anonimo' && (
               <Link to={RUTAS.login} state={{ desde: RUTAS.evento(eventCode) }} className="flex min-h-12 w-full items-center justify-center rounded-lg bg-marca-600 px-4 py-3 font-semibold text-white hover:bg-marca-700">
                 Comprar entrada
               </Link>
             )}
-            {compraHabilitada && sesion.estado === 'autenticado' && (
+            {compraHabilitada && puedeComprar && sesion.estado === 'autenticado' && (
               <Boton className="w-full" onClick={() => setModalAbierto(true)}>Comprar entrada</Boton>
             )}
           </aside>

@@ -101,7 +101,7 @@ describe('páginas y formularios requeridos', () => {
     expect(screen.queryByRole('button', { name: 'Comprar entrada' })).not.toBeInTheDocument()
   })
 
-  it('TEST-FE-ROL-001 STAFF autenticado recibe /403 al confirmar la compra', async () => {
+  it('TEST-FE-ROL-001 STAFF autenticado no puede abrir la compra', async () => {
     const authStaff: ContextoAuth = {
       sesion: {
         estado: 'autenticado',
@@ -118,7 +118,6 @@ describe('páginas y formularios requeridos', () => {
       cerrarSesion: () => undefined,
       tieneRol: (...roles) => roles.includes('STAFF'),
     }
-    const user = userEvent.setup()
     renderWithProviders(
       <Routes>
         <Route path="/eventos/:eventCode" element={<DetalleEvento />} />
@@ -127,8 +126,8 @@ describe('páginas y formularios requeridos', () => {
       ['/eventos/EVT-001'],
       authStaff,
     )
-    await user.click(await screen.findByRole('button', { name: 'Comprar entrada' }))
-    await user.click(screen.getByRole('button', { name: 'Confirmar compra' }))
-    expect(await screen.findByText('sin permisos')).toBeInTheDocument()
+    expect(await screen.findByText('Luna en vivo')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Comprar entrada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Comprar entrada' })).not.toBeInTheDocument()
   })
 })

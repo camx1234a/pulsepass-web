@@ -309,11 +309,15 @@ describe('TEST-FE-ADM administración', () => {
   it('TEST-FE-ADM-CACHE-002 asociación actualiza detalle e invalida cartelera', async () => {
     const queryClient = new QueryClient()
     queryClient.setQueryData(['eventos', 'publicados'], [evento])
+    queryClient.setQueryData(['eventos', 'artista', 'Luna Norte'], [evento])
+    queryClient.setQueryData(['artistas', artista.id], artista)
 
     await invalidarCacheAsociacion(queryClient, evento)
 
     expect(queryClient.getQueryData(['eventos', evento.eventCode])).toEqual(evento)
     expect(queryClient.getQueryState(['eventos', 'publicados'])?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(['eventos', 'artista', 'Luna Norte'])?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(['artistas', artista.id])?.isInvalidated).toBe(true)
   })
 
   it('TEST-FE-ADM-001 crear evento con campos vacíos falla la validación', async () => {

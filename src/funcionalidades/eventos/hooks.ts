@@ -22,6 +22,8 @@ export async function invalidarCacheAsociacion(queryClient: ReturnType<typeof us
     actualizarEventoCreado(queryClient, evento),
     queryClient.setQueryData(['eventos', evento.eventCode], evento),
     queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'artista'] }),
+    queryClient.invalidateQueries({ queryKey: ['artistas'] }),
   ])
 }
 
