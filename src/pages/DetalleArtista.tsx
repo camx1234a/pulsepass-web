@@ -27,7 +27,17 @@ export default function DetalleArtista() {
     <div className="space-y-8">
       <Link to={RUTAS.artistas} className="text-sm font-semibold text-marca-600 dark:text-marca-500">← Todos los artistas</Link>
       <header className="flex items-center gap-5">
-        <span className="flex size-20 shrink-0 items-center justify-center rounded-full bg-marca-600 text-3xl font-bold text-white">{artista.data.stageName.slice(0, 1).toUpperCase()}</span>
+        <span className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-marca-600 text-3xl font-bold text-white">
+          {artista.data.stageName.slice(0, 1).toUpperCase()}
+          {artista.data.imageUrl && (
+            <img
+              src={artista.data.imageUrl}
+              alt=""
+              onError={(event) => { event.currentTarget.style.display = 'none' }}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+        </span>
         <div><h1 className="text-3xl font-bold">{artista.data.stageName}</h1><p className="text-slate-500">{[artista.data.genre, artista.data.country].filter(Boolean).join(' · ')}</p></div>
       </header>
       <section className="space-y-5" aria-labelledby="eventos-artista">

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import clsx from 'clsx'
 import { clasesBoton } from '../componentes/estilos'
-import { IconoCerrar, IconoMenu, IconoNota } from '../componentes/Iconos'
+import { IconoCerrar, IconoLuna, IconoMenu, IconoNota, IconoSol } from '../componentes/Iconos'
 import { useAuth } from '../funcionalidades/auth/hooks'
 import type { Rol } from '../funcionalidades/auth/tipos'
 import { RUTAS } from '../lib/rutas'
@@ -36,6 +36,11 @@ export default function Navbar() {
   const { sesion, tieneRol, cerrarSesion } = useAuth()
   const navigate = useNavigate()
   const [abierto, setAbierto] = useState(false)
+  const [temaOscuro, setTemaOscuro] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', temaOscuro)
+  }, [temaOscuro])
 
   useEffect(() => {
     if (!abierto) return
@@ -80,6 +85,15 @@ export default function Navbar() {
         </ul>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
+          <button
+            type="button"
+            aria-label={temaOscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+            aria-pressed={temaOscuro}
+            onClick={() => setTemaOscuro((actual) => !actual)}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-marca-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            {temaOscuro ? <IconoSol /> : <IconoLuna />}
+          </button>
           {sesion.estado === 'anonimo' && accionesAnonimo}
           {sesion.estado === 'autenticado' && <MenuUsuario usuario={sesion.usuario} onSalir={salir} />}
         </div>
@@ -104,6 +118,15 @@ export default function Navbar() {
             </NavLink>
           ))}
           <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+            <button
+              type="button"
+              aria-pressed={temaOscuro}
+              onClick={() => setTemaOscuro((actual) => !actual)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              {temaOscuro ? <IconoSol /> : <IconoLuna />}
+              {temaOscuro ? 'Tema claro' : 'Tema oscuro'}
+            </button>
             {sesion.estado === 'anonimo' && accionesAnonimo}
             {sesion.estado === 'autenticado' && (
               <>

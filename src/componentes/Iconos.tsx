@@ -40,6 +40,15 @@ export const IconoNota = (p: ComponentProps<'svg'>) => (
     <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
   </Icono>
 )
+export const IconoSol = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+  </Icono>
+)
+export const IconoLuna = (p: ComponentProps<'svg'>) => (
+  <Icono {...p}><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" /></Icono>
+)
 export const IconoChevron = (p: ComponentProps<'svg'>) => (
   <Icono {...p}><path d="m6 9 6 6 6-6" /></Icono>
 )

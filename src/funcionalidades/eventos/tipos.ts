@@ -19,6 +19,7 @@ export const EventoResumenSchema = z.object({
   eventDate: FechaHoraLocalSchema,
   venueCode: z.string(),
   venueName: z.string(),
+  imageUrl: z.string().nullish(),
 })
 export type EventoResumen = z.infer<typeof EventoResumenSchema>
 
@@ -39,5 +40,9 @@ export const CrearEventoSchema = z.object({
   eventDate: FechaHoraLocalSchema, // <input type="datetime-local"> entrega "2026-12-12T20:00"
   minimumAge: z.number('Ingresa la edad mínima').int('Debe ser un entero').min(0, 'Debe ser 0 o mayor'),
   venueCode: z.string().min(1, 'Selecciona una sede'),
+  imageUrl: z.union([
+    z.string().trim().url('Ingresa una URL válida').max(1000, 'Máximo 1000 caracteres'),
+    z.literal(''),
+  ]).optional(),
 })
 export type CrearEventoForm = z.infer<typeof CrearEventoSchema>

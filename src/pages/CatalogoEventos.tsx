@@ -8,6 +8,7 @@ import Boton from '../componentes/Boton'
 import { useArtistasActivos } from '../funcionalidades/artistas/hooks'
 import { useEventosPorArtista, useEventosPublicados } from '../funcionalidades/eventos/hooks'
 import { EventCategorySchema } from '../funcionalidades/eventos/tipos'
+import { nombreCategoria } from '../funcionalidades/eventos/formato'
 
 export default function CatalogoEventos() {
   const [params, setParams] = useSearchParams()
@@ -61,7 +62,7 @@ export default function CatalogoEventos() {
         <select id="categoria-evento" value={categoriaParam} onChange={(e) => actualizar('categoria', e.target.value)}
           className="min-h-11 rounded-lg border border-slate-300 px-3 dark:border-slate-700 dark:bg-slate-950">
           <option value="">Todas las categorías</option>
-          {categorias.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+          {categorias.map((categoria) => <option key={categoria} value={categoria}>{nombreCategoria(categoria)}</option>)}
         </select>
         <label className="sr-only" htmlFor="artista-evento">Artista</label>
         <select id="artista-evento" value={artista} onChange={(e) => actualizar('artista', e.target.value)}
@@ -77,7 +78,13 @@ export default function CatalogoEventos() {
       {consulta.isPending && <Cargando lineas={6} />}
       {consulta.isError && <EstadoError mensaje={consulta.error.message} onReintentar={() => consulta.refetch()} />}
       {consulta.isSuccess && filtrados.length === 0 && (
-        <EstadoVacio mensaje="Sin resultados para tu búsqueda" />
+        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+          <img src="/images/concert-login.jpg" alt="" className="h-48 w-full object-cover opacity-80" />
+          <EstadoVacio
+            mensaje={artista || q || categoriaParam ? 'Sin resultados para tu búsqueda' : 'Aún no hay eventos publicados'}
+            accion={artista || q || categoriaParam ? <Boton variante="secundario" onClick={() => setParams({})}>Limpiar filtros</Boton> : undefined}
+          />
+        </div>
       )}
       {consulta.isSuccess && filtrados.length > 0 && (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

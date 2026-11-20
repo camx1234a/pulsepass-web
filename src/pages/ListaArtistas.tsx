@@ -20,7 +20,17 @@ export default function ListaArtistas() {
             <Link key={artista.id} to={RUTAS.artista(artista.id)} className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-marca-600">
               <Tarjeta className="h-full p-5 transition-transform hover:-translate-y-1">
                 <div className="flex items-center gap-4">
-                  <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-marca-100 text-xl font-bold text-marca-700 dark:bg-marca-600/20">{artista.stageName.slice(0, 1).toUpperCase()}</span>
+                  <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-marca-100 text-xl font-bold text-marca-700 dark:bg-marca-600/20">
+                    {artista.stageName.slice(0, 1).toUpperCase()}
+                    {artista.imageUrl && (
+                      <img
+                        src={artista.imageUrl}
+                        alt=""
+                        onError={(event) => { event.currentTarget.style.display = 'none' }}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    )}
+                  </span>
                   <div><h2 className="font-bold">{artista.stageName}</h2><p className="text-sm text-slate-500">{artista.genre ?? 'Artista'}</p><p className="mt-1 text-xs text-slate-400">{artista.country ?? ''}</p></div>
                 </div>
               </Tarjeta>

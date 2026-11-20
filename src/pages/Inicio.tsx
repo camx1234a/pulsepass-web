@@ -17,18 +17,30 @@ export default function Inicio() {
 
   return (
     <div className="space-y-12">
-      <section className="rounded-2xl bg-linear-to-r from-marca-600 to-acento-500 px-6 py-12 text-white sm:px-10">
-        <div className="max-w-2xl space-y-5">
-          <p className="text-sm font-semibold uppercase tracking-wider text-white/80">Vive la próxima experiencia</p>
-          <h1 className="text-4xl font-bold sm:text-5xl">Encuentra tu próximo evento</h1>
-          <p className="text-white/90">Descubre conciertos, festivales y eventos culturales en un solo lugar.</p>
-          <div className="flex flex-wrap gap-3">
-            <Link to={RUTAS.eventos} className={clasesBoton('secundario')}>Ver cartelera</Link>
-            {sesion.estado !== 'autenticado' && (
-              <Link to={RUTAS.registro} className={clasesBoton('fantasma', 'bg-white/10 text-white hover:bg-white/20')}>
-                Crear cuenta
-              </Link>
-            )}
+      <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-12 text-white shadow-xl sm:px-10 lg:py-16">
+        <img src="/images/concert-login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+        <div className="absolute inset-0 bg-linear-to-r from-slate-950 via-slate-950/85 to-marca-950/20" />
+        <div className="grid items-center gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="relative z-10 max-w-xl space-y-5">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/80">Vive la próxima experiencia</p>
+            <h1 className="text-4xl font-bold sm:text-5xl">Encuentra tu próximo evento</h1>
+            <p className="text-white/90">Descubre conciertos, festivales y eventos culturales en un solo lugar.</p>
+            <div className="flex flex-wrap gap-3">
+              <Link to={RUTAS.eventos} className={clasesBoton('secundario')}>Ver cartelera</Link>
+              {sesion.estado !== 'autenticado' && (
+                <Link to={RUTAS.registro} className={clasesBoton('fantasma', 'bg-white/10 text-white hover:bg-white/20')}>
+                  Crear cuenta
+                </Link>
+              )}
+            </div>
+          </div>
+          <div className="relative z-10 hidden justify-self-end rounded-2xl border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-md lg:block">
+            <p className="text-sm font-semibold text-white/80">Tu próxima historia</p>
+            <p className="mt-1 text-2xl font-bold">comienza aquí.</p>
+            <div className="mt-6 flex items-center gap-2">
+              <span className="size-2 rounded-full bg-emerald-400" />
+              <span className="text-sm text-white/80">Eventos y experiencias en un solo lugar</span>
+            </div>
           </div>
         </div>
       </section>
@@ -58,8 +70,16 @@ export default function Inicio() {
             {artistas.data.slice(0, 6).map((artista) => (
               <Link key={artista.id} to={RUTAS.artista(artista.id)}>
                 <Tarjeta className="flex items-center gap-4 p-4 transition-shadow hover:shadow-md">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-marca-100 text-lg font-bold text-marca-700 dark:bg-marca-600/20">
+                  <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-marca-100 text-lg font-bold text-marca-700 dark:bg-marca-600/20">
                     {artista.stageName.slice(0, 1).toUpperCase()}
+                    {artista.imageUrl && (
+                      <img
+                        src={artista.imageUrl}
+                        alt=""
+                        onError={(event) => { event.currentTarget.style.display = 'none' }}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    )}
                   </span>
                   <div>
                     <p className="font-semibold">{artista.stageName}</p>
