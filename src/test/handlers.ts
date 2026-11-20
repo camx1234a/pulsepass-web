@@ -1,7 +1,19 @@
 import { http, HttpResponse } from 'msw'
 import { artista, evento, sede, ticket } from './datos'
 
-const usuario = { userId: 7, username: 'andrea', email: 'andrea@example.test', roles: ['USER'] as const }
+const usuario = {
+  userId: 7,
+  id: 7,
+  username: 'andrea',
+  email: 'andrea@example.test',
+  firstName: 'Andrea',
+  lastName: 'Ruiz',
+  phone: null,
+  city: null,
+  birthDate: '2000-04-12',
+  active: true,
+  roles: ['USER'] as const,
+}
 
 export const handlers = [
   http.all('/api/*', ({ request }) => {
