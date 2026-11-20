@@ -48,7 +48,7 @@ export default function Navbar() {
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setAbierto(false)
-        botonMenuRef.current?.focus()
+        window.setTimeout(() => botonMenuRef.current?.focus(), 0)
       }
     }
     document.addEventListener('keydown', alTeclear)
@@ -90,7 +90,6 @@ export default function Navbar() {
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
           <button
-            ref={botonMenuRef}
             type="button"
             aria-label={temaOscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             aria-pressed={temaOscuro}
@@ -104,6 +103,7 @@ export default function Navbar() {
         </div>
 
         <button
+          ref={botonMenuRef}
           type="button"
           aria-expanded={abierto}
           aria-controls="menu-movil"
@@ -124,6 +124,7 @@ export default function Navbar() {
           ))}
           <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
             <button
+              ref={botonMenuRef}
               type="button"
               aria-pressed={temaOscuro}
               onClick={() => setTemaOscuro((actual) => !actual)}

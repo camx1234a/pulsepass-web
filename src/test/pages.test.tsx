@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import CatalogoEventos from '../pages/CatalogoEventos'
@@ -11,15 +11,68 @@ import Login from '../pages/Login'
 import Registro from '../pages/Registro'
 import AccionesTicket from '../componentes/AccionesTicket'
 import Navbar from '../layouts/Navbar'
-import { ticket } from './datos'
+import { evento, ticket } from './datos'
 import { AuthContext, type ContextoAuth } from '../funcionalidades/auth/contexto'
 import { server } from './server'
+import Inicio from '../pages/Inicio'
+import ListaArtistas from '../pages/ListaArtistas'
+import DetalleArtista from '../pages/DetalleArtista'
+import ListaSedes from '../pages/ListaSedes'
+import DetalleSede from '../pages/DetalleSede'
+import Cuenta from '../pages/Cuenta'
+import MisTickets from '../pages/MisTickets'
+import DetalleTicket from '../pages/DetalleTicket'
+import ConfirmacionCompra from '../pages/ConfirmacionCompra'
+import ValidacionIngreso from '../pages/ValidacionIngreso'
+import TicketsPagadosEvento from '../pages/TicketsPagadosEvento'
+import AdminEventos from '../pages/AdminEventos'
+import AdminCrearEvento from '../pages/AdminCrearEvento'
+import AdminGestionEvento from '../pages/AdminGestionEvento'
+import SinPermisos from '../pages/SinPermisos'
+import NoEncontrada from '../pages/NoEncontrada'
+import VisualEvento from '../componentes/VisualEvento'
 
 const authAnonima: ContextoAuth = {
   sesion: { estado: 'anonimo' },
   iniciarSesion: async () => undefined,
   cerrarSesion: () => undefined,
   tieneRol: () => false,
+}
+
+const authUser: ContextoAuth = {
+  sesion: {
+    estado: 'autenticado',
+    token: 'user-token',
+    expiraEn: Date.now() + 60_000,
+    usuario: { userId: 1, username: 'andrea', email: 'andrea@example.test', roles: ['USER'] },
+  },
+  iniciarSesion: async () => undefined,
+  cerrarSesion: () => undefined,
+  tieneRol: (...roles) => roles.includes('USER'),
+}
+
+const authStaff: ContextoAuth = {
+  sesion: {
+    estado: 'autenticado',
+    token: 'staff-token',
+    expiraEn: Date.now() + 60_000,
+    usuario: { userId: 2, username: 'staff', email: 'staff@example.test', roles: ['STAFF'] },
+  },
+  iniciarSesion: async () => undefined,
+  cerrarSesion: () => undefined,
+  tieneRol: (...roles) => roles.includes('STAFF'),
+}
+
+const authAdmin: ContextoAuth = {
+  sesion: {
+    estado: 'autenticado',
+    token: 'admin-token',
+    expiraEn: Date.now() + 60_000,
+    usuario: { userId: 3, username: 'admin', email: 'admin@pulsepass.test', roles: ['ADMIN', 'USER'] },
+  },
+  iniciarSesion: async () => undefined,
+  cerrarSesion: () => undefined,
+  tieneRol: (...roles) => roles.some((rol) => rol === 'ADMIN' || rol === 'USER'),
 }
 
 function renderWithProviders(
@@ -232,5 +285,85 @@ describe('páginas y formularios requeridos', () => {
     renderWithProviders(<Navbar />, ['/'], authUser)
     expect(screen.getAllByRole('link', { name: 'Mis tickets' }).length).toBeGreaterThan(0)
     expect(screen.queryAllByRole('link', { name: 'Administrar eventos' })).toHaveLength(0)
+  })
+
+  it('TEST-FE-GEN-004 abre el menú móvil, permite navegar y vuelve el foco con Escape', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<Navbar />, ['/'])
+
+    const abrir = screen.getByRole('button', { name: 'Abrir menú' })
+    await user.click(abrir)
+    expect(screen.getAllByText('Eventos').length).toBeGreaterThan(0)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('button', { name: 'Cerrar menú' })).not.toBeInTheDocument()
+    await waitFor(() => expect(document.activeElement).toBe(abrir))
+  })
+
+  it.each([
+    'MUSIC',
+    'SPORTS',
+    'TECHNOLOGY',
+    'EDUCATION',
+    'CULTURE',
+    'ENTERTAINMENT',
+  ] as const)('TEST-FE-VISUAL-%s usa el panel SVG de categoría', (categoria) => {
+    const { container } = renderWithProviders(<VisualEvento categoria={categoria} />)
+    expect(container.querySelector('svg')).toBeInTheDocument()
+    expect(container.querySelector('img')).not.toBeInTheDocument()
+  })
+
+  it('TEST-FE-ADM-004 publica un evento y actualiza la interfaz', async () => {
+    const user = userEvent.setup()
+    server.use(http.get('/api/events/EVT-001', () => HttpResponse.json({
+      ...evento,
+      status: 'DRAFT',
+    })))
+    renderWithProviders(
+      <Routes>
+        <Route path="/admin/eventos/:eventCode" element={<AdminGestionEvento />} />
+      </Routes>,
+      ['/admin/eventos/EVT-001'],
+      authAdmin,
+    )
+    await user.click(await screen.findByRole('button', { name: 'Publicar evento' }))
+    expect(screen.getByRole('heading', { name: '¿Publicar el evento?' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Confirmar publicación' }))
+    expect(await screen.findByText('Evento publicado.')).toBeInTheDocument()
+  })
+
+  it.each([
+    { nombre: 'Inicio', patron: '/', entrada: '/', componente: Inicio, auth: authAnonima, texto: 'Encuentra tu próximo evento' },
+    { nombre: 'Cartelera', patron: '/eventos', entrada: '/eventos', componente: CatalogoEventos, auth: authAnonima, texto: 'Cartelera' },
+    { nombre: 'Detalle de evento', patron: '/eventos/:eventCode', entrada: '/eventos/EVT-001', componente: DetalleEvento, auth: authAnonima, texto: 'Luna en vivo' },
+    { nombre: 'Lista de artistas', patron: '/artistas', entrada: '/artistas', componente: ListaArtistas, auth: authAnonima, texto: 'Artistas' },
+    { nombre: 'Detalle de artista', patron: '/artistas/:id', entrada: '/artistas/1', componente: DetalleArtista, auth: authAnonima, texto: 'Luna Norte' },
+    { nombre: 'Lista de sedes', patron: '/sedes', entrada: '/sedes', componente: ListaSedes, auth: authAnonima, texto: 'Sedes' },
+    { nombre: 'Detalle de sede', patron: '/sedes/:code', entrada: '/sedes/CMF-2026', componente: DetalleSede, auth: authAnonima, texto: 'Centro Metropolitano' },
+    { nombre: 'Login', patron: '/login', entrada: '/login', componente: Login, auth: authAnonima, texto: 'Inicia sesión' },
+    { nombre: 'Registro', patron: '/registro', entrada: '/registro', componente: Registro, auth: authAnonima, texto: 'Crea tu cuenta' },
+    { nombre: 'Cuenta', patron: '/cuenta', entrada: '/cuenta', componente: Cuenta, auth: authUser, texto: 'Mi cuenta' },
+    { nombre: 'Mis tickets', patron: '/mis-tickets', entrada: '/mis-tickets', componente: MisTickets, auth: authUser, texto: 'Mis tickets' },
+    { nombre: 'Detalle de ticket', patron: '/mis-tickets/:ticketCode', entrada: '/mis-tickets/TCK-8f2a1c-4b1d', componente: DetalleTicket, auth: authUser, texto: 'Luna en vivo' },
+    { nombre: 'Confirmación de compra', patron: '/compra/confirmacion/:ticketCode', entrada: '/compra/confirmacion/TCK-8f2a1c-4b1d', componente: ConfirmacionCompra, auth: authUser, texto: 'Compra realizada con éxito' },
+    { nombre: 'Validación de ingreso', patron: '/staff/validacion', entrada: '/staff/validacion', componente: ValidacionIngreso, auth: authStaff, texto: 'Validación de ingreso' },
+    { nombre: 'Tickets pagados', patron: '/staff/eventos/:eventCode/tickets', entrada: '/staff/eventos/EVT-001/tickets', componente: TicketsPagadosEvento, auth: authStaff, texto: 'Tickets pagados' },
+    { nombre: 'Administración de eventos', patron: '/admin/eventos', entrada: '/admin/eventos', componente: AdminEventos, auth: authAdmin, texto: 'Administración de eventos' },
+    { nombre: 'Crear evento', patron: '/admin/eventos/nuevo', entrada: '/admin/eventos/nuevo', componente: AdminCrearEvento, auth: authAdmin, texto: 'Crear evento' },
+    { nombre: 'Gestionar evento', patron: '/admin/eventos/:eventCode', entrada: '/admin/eventos/EVT-001', componente: AdminGestionEvento, auth: authAdmin, texto: 'Luna en vivo' },
+    { nombre: 'Sin permisos', patron: '/403', entrada: '/403', componente: SinPermisos, auth: authUser, texto: '403' },
+    { nombre: 'Página no encontrada', patron: '*', entrada: '/ruta-inexistente', componente: NoEncontrada, auth: authAnonima, texto: '404' },
+  ])('TEST-FE-PAGE-RUTA-$nombre renderiza correctamente', async ({ patron, entrada, componente, auth, texto }) => {
+    const Elemento = componente as ComponentType
+    renderWithProviders(
+      <Routes>
+        <Route path={patron} element={<Elemento />} />
+      </Routes>,
+      [entrada],
+      auth,
+    )
+    const encontrados = await screen.findAllByText((_, elemento) =>
+      elemento?.textContent?.includes(texto) ?? false,
+    )
+    expect(encontrados.length).toBeGreaterThan(0)
   })
 })

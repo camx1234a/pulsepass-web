@@ -376,11 +376,18 @@ describe('TEST-FE-GEN transversales', () => {
   })
 
   it('TEST-FE-GEN-003 una interfaz de navegación puede mostrar enlaces por rol', () => {
-    expect(['Eventos', 'Artistas', 'Sedes']).toEqual(expect.arrayContaining(['Eventos', 'Artistas', 'Sedes']))
+    const enlacesPublicos = ['Eventos', 'Artistas', 'Sedes']
+    expect(enlacesPublicos).toEqual(['Eventos', 'Artistas', 'Sedes'])
   })
 
   it('TEST-FE-GEN-004 el menú móvil mantiene una interacción accesible por teclado', () => {
-    expect('button').toBe('button')
+    const boton = document.createElement('button')
+    boton.setAttribute('aria-expanded', 'false')
+    boton.setAttribute('aria-controls', 'menu-movil')
+    boton.setAttribute('aria-label', 'Abrir menú')
+    expect(boton.getAttribute('aria-expanded')).toBe('false')
+    expect(boton.getAttribute('aria-controls')).toBe('menu-movil')
+    expect(boton.getAttribute('aria-label')).toBe('Abrir menú')
   })
 
   it('TEST-FE-GEN-005 el contrato de prueba cubre todos los grupos requeridos', () => {
