@@ -51,7 +51,7 @@ export default function Navbar() {
   function salir() {
     setAbierto(false)
     cerrarSesion()
-    navigate(RUTAS.inicio, { replace: true })
+    navigate(RUTAS.login, { replace: true })
   }
 
   const accionesAnonimo = (
