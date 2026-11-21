@@ -29,6 +29,10 @@ export default function TarjetaEvento({ evento }: { evento: EventoResumen }) {
             <BadgeEstado estado={evento.status} />
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
+            Código:{' '}
+            <span className="font-mono wrap-anywhere">{evento.eventCode}</span>
+          </p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             {formatearFechaHora(evento.eventDate)}
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">

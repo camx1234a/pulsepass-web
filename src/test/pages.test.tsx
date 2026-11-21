@@ -120,6 +120,7 @@ describe('páginas y formularios requeridos', () => {
   it('TEST-FE-PAGE-001 muestra la cartelera con eventos publicados', async () => {
     renderWithProviders(<CatalogoEventos />)
     expect(await screen.findByText('Luna en vivo')).toBeInTheDocument()
+    expect(screen.getByText(evento.eventCode)).toBeVisible()
   })
 
   it('TEST-FE-PAGE-002 muestra estado vacío cuando no hay eventos', async () => {
