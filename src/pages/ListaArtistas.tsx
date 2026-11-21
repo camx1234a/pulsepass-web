@@ -1,13 +1,43 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { useState } from 'react'
+import Boton from '../componentes/Boton'
+import Campo from '../componentes/Campo'
+import { ApiError } from '../lib/http'
 import { Link } from 'react-router'
 import Cargando from '../componentes/Cargando'
 import EstadoError from '../componentes/EstadoError'
 import EstadoVacio from '../componentes/EstadoVacio'
 import Tarjeta from '../componentes/Tarjeta'
-import { useArtistasActivos } from '../funcionalidades/artistas/hooks'
+import {
+  useArtistaPorNombre,
+  useArtistasActivos,
+} from '../funcionalidades/artistas/hooks'
 import { RUTAS } from '../lib/rutas'
 
+const formularioSchema = z.object({
+  nombre: z.string().trim().min(1, 'Ingresa el nombre artístico.'),
+})
+
 export default function ListaArtistas() {
-  const artistas = useArtistasActivos()
+  const form = useForm({
+    resolver: zodResolver(formularioSchema),
+    defaultValues: { nombre: '' },
+  })
+  const [nombre, setNombre] = useState('')
+  const activos = useArtistasActivos()
+  const resultado = useArtistaPorNombre(nombre)
+  const consulta = nombre ? resultado : activos
+  const artistas = nombre
+    ? resultado.data
+      ? [resultado.data]
+      : []
+    : (activos.data ?? [])
+  const sinCoincidencia =
+    !!nombre &&
+    consulta.error instanceof ApiError &&
+    consulta.error.status === 404
   return (
     <div className="space-y-6">
       <div>
@@ -16,19 +46,46 @@ export default function ListaArtistas() {
         </p>
         <h1 className="mt-1 text-3xl font-bold">Artistas</h1>
       </div>
-      {artistas.isPending && <Cargando lineas={6} />}
-      {artistas.isError && (
+      <form
+        className="flex flex-col gap-3 sm:flex-row sm:items-end"
+        onSubmit={form.handleSubmit(({ nombre }) => setNombre(nombre))}
+      >
+        <div className="flex-1">
+          <Campo
+            etiqueta="Nombre artístico"
+            {...form.register('nombre')}
+            error={form.formState.errors.nombre?.message}
+          />
+        </div>
+        <Boton type="submit">Buscar artista</Boton>
+        {nombre && (
+          <Boton
+            variante="secundario"
+            onClick={() => {
+              form.reset()
+              setNombre('')
+            }}
+          >
+            Ver todos
+          </Boton>
+        )}
+      </form>
+      {consulta.isPending && <Cargando lineas={6} />}
+      {sinCoincidencia && (
+        <EstadoVacio mensaje="No encontramos un artista con ese nombre." />
+      )}
+      {consulta.isError && !sinCoincidencia && (
         <EstadoError
-          mensaje={artistas.error.message}
-          onReintentar={() => artistas.refetch()}
+          mensaje={consulta.error.message}
+          onReintentar={() => consulta.refetch()}
         />
       )}
-      {artistas.isSuccess && artistas.data.length === 0 && (
+      {consulta.isSuccess && artistas.length === 0 && (
         <EstadoVacio mensaje="Aún no hay artistas activos" />
       )}
-      {artistas.isSuccess && artistas.data.length > 0 && (
+      {consulta.isSuccess && artistas.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {artistas.data.map((artista) => (
+          {artistas.map((artista) => (
             <Link
               key={artista.id}
               to={RUTAS.artista(artista.id)}

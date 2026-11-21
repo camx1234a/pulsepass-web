@@ -21,6 +21,8 @@ export async function invalidarCacheCompra(
       queryKey: ['tickets', 'pagados', ticket.eventCode],
     }),
     queryClient.invalidateQueries({ queryKey: ['eventos', ticket.eventCode] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'artista'] }),
   ])
 }
 
@@ -36,6 +38,8 @@ export async function invalidarCacheCancelacion(
       queryKey: ['tickets', 'pagados', ticket.eventCode],
     }),
     queryClient.invalidateQueries({ queryKey: ['eventos', ticket.eventCode] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'artista'] }),
   ])
 }
 

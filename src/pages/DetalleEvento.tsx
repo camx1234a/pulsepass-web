@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useState } from 'react'
 import Cargando from '../componentes/Cargando'
@@ -21,14 +24,18 @@ import VisualEvento from '../componentes/VisualEvento'
 import { useSede } from '../funcionalidades/sedes/hooks'
 import { useAvisosGlobales } from '../lib/avisos'
 
+const compraSchema = z.object({ tipo: TicketTypeSchema })
+
 export default function DetalleEvento() {
   const { eventCode = '' } = useParams()
   const evento = useEvento(eventCode)
   const { sesion } = useAuth()
   const navigate = useNavigate()
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [tipo, setTipo] =
-    useState<(typeof TicketTypeSchema.options)[number]>('GENERAL')
+  const form = useForm<z.infer<typeof compraSchema>>({
+    resolver: zodResolver(compraSchema),
+    defaultValues: { tipo: 'GENERAL' },
+  })
   const compra = useComprarTicket(
     sesion.estado === 'autenticado' ? sesion.usuario.email : '',
   )
@@ -186,46 +193,49 @@ export default function DetalleEvento() {
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {data.name}. El precio final lo determina el servidor.
         </p>
-        <Selector
-          etiqueta="Tipo de entrada"
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value as typeof tipo)}
-        >
-          {TicketTypeSchema.options.map((opcion) => (
-            <option key={opcion} value={opcion}>
-              {opcion}
-            </option>
-          ))}
-        </Selector>
-        {compra.isError && <Aviso tipo="error">{compra.error.message}</Aviso>}
-        <div className="flex justify-end gap-2">
-          <Boton variante="secundario" onClick={() => setModalAbierto(false)}>
-            Volver
-          </Boton>
-          <Boton
-            cargando={compra.isPending}
-            onClick={() => {
-              if (
-                sesion.estado !== 'autenticado' ||
-                !sesion.usuario.roles.includes('USER')
-              ) {
-                navigate(RUTAS.sinPermisos)
-                return
-              }
-              compra.mutate(
-                { userEmail: sesion.usuario.email, eventCode, type: tipo },
-                {
-                  onSuccess: (ticket) => {
-                    avisos.mostrar('exito', 'Compra realizada con éxito.')
-                    navigate(RUTAS.confirmacionCompra(ticket.ticketCode))
-                  },
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit(({ tipo }) => {
+            if (
+              sesion.estado !== 'autenticado' ||
+              !sesion.usuario.roles.includes('USER')
+            ) {
+              navigate(RUTAS.sinPermisos)
+              return
+            }
+            compra.mutate(
+              { userEmail: sesion.usuario.email, eventCode, type: tipo },
+              {
+                onSuccess: (ticket) => {
+                  avisos.mostrar('exito', 'Compra realizada con éxito.')
+                  navigate(RUTAS.confirmacionCompra(ticket.ticketCode))
                 },
-              )
-            }}
+              },
+            )
+          })}
+        >
+          {' '}
+          <Selector
+            etiqueta="Tipo de entrada"
+            {...form.register('tipo')}
+            error={form.formState.errors.tipo?.message}
           >
-            Confirmar compra
-          </Boton>
-        </div>
+            {TicketTypeSchema.options.map((opcion) => (
+              <option key={opcion} value={opcion}>
+                {opcion}
+              </option>
+            ))}
+          </Selector>
+          {compra.isError && <Aviso tipo="error">{compra.error.message}</Aviso>}
+          <div className="flex justify-end gap-2">
+            <Boton variante="secundario" onClick={() => setModalAbierto(false)}>
+              Volver
+            </Boton>
+            <Boton cargando={compra.isPending} type="submit">
+              Confirmar compra
+            </Boton>
+          </div>
+        </form>
       </Modal>
     </div>
   )

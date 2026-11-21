@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { useState } from 'react'
 import Aviso from '../componentes/Aviso'
 import { BadgeEstado } from '../componentes/Badge'
@@ -12,29 +15,17 @@ import { formatearCOP, formatearFechaHora } from '../lib/formato'
 import { CodigoTicketSchema } from '../funcionalidades/tickets/tipos'
 import { useAvisosGlobales } from '../lib/avisos'
 
+const formularioSchema = z.object({ codigo: CodigoTicketSchema })
+
 export default function ValidacionIngreso() {
-  const [codigo, setCodigo] = useState('')
+  const form = useForm({
+    resolver: zodResolver(formularioSchema),
+    defaultValues: { codigo: '' },
+  })
   const [buscado, setBuscado] = useState('')
-  const [errorCodigo, setErrorCodigo] = useState<string | null>(null)
   const ticket = useTicket(buscado)
   const usar = useUsarTicket()
   const avisos = useAvisosGlobales()
-
-  function buscar(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const limpio = codigo.trim()
-    const resultado = CodigoTicketSchema.safeParse(limpio)
-    if (!resultado.success) {
-      setErrorCodigo(
-        resultado.error.issues[0]?.message ?? 'Ingresa un código válido.',
-      )
-      setBuscado('')
-      return
-    }
-    setErrorCodigo(null)
-    setBuscado(limpio)
-    usar.reset()
-  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -45,7 +36,10 @@ export default function ValidacionIngreso() {
         <h1 className="mt-1 text-3xl font-bold">Validación de ingreso</h1>
       </header>
       <form
-        onSubmit={buscar}
+        onSubmit={form.handleSubmit(({ codigo }) => {
+          setBuscado(codigo)
+          usar.reset()
+        })}
         className="flex flex-col gap-3 rounded-xl bg-white p-5 ring-1 ring-slate-200 sm:flex-row sm:items-end dark:bg-slate-900 dark:ring-slate-800"
       >
         <div className="flex-1">
@@ -54,14 +48,15 @@ export default function ValidacionIngreso() {
             autoComplete="off"
             autoFocus
             placeholder="TCK-8F2A1C"
-            value={codigo}
-            onChange={(event) => {
-              setCodigo(event.target.value)
-              if (errorCodigo) setErrorCodigo(null)
-              setBuscado('')
-              usar.reset()
-            }}
-            error={errorCodigo ?? undefined}
+            {...form.register('codigo', {
+              setValueAs: (valor: string) => valor.trim(),
+              onChange: () => {
+                setBuscado('')
+                usar.reset()
+                form.clearErrors('codigo')
+              },
+            })}
+            error={form.formState.errors.codigo?.message}
           />
         </div>
         <Boton type="submit" cargando={ticket.isFetching}>

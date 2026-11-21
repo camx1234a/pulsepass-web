@@ -1,3 +1,7 @@
+import Modal from '../componentes/Modal'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import Aviso from '../componentes/Aviso'
@@ -19,13 +23,20 @@ import { formatearFechaHora } from '../lib/formato'
 import { RUTAS } from '../lib/rutas'
 import { useAvisosGlobales } from '../lib/avisos'
 
+const formularioSchema = z.object({
+  artistaId: z.string().regex(/^[1-9]\d*$/, 'Selecciona un artista.'),
+})
+
 export default function AdminGestionEvento() {
   const { eventCode = '' } = useParams()
   const evento = useEvento(eventCode)
   const artistas = useArtistasActivos()
   const publicar = usePublicarEvento()
   const asociar = useAsociarArtista()
-  const [artistaId, setArtistaId] = useState('')
+  const form = useForm({
+    resolver: zodResolver(formularioSchema),
+    defaultValues: { artistaId: '' },
+  })
   const [confirmar, setConfirmar] = useState(false)
   const avisos = useAvisosGlobales()
 
@@ -116,17 +127,18 @@ export default function AdminGestionEvento() {
         )}
         <form
           className="flex flex-col gap-3 sm:flex-row sm:items-end"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (artistaId)
-              asociar.mutate({ eventCode, artistId: Number(artistaId) })
-          }}
+          onSubmit={form.handleSubmit(({ artistaId }) =>
+            asociar.mutate(
+              { eventCode, artistId: Number(artistaId) },
+              { onSuccess: () => form.reset() },
+            ),
+          )}
         >
           <div className="flex-1">
             <Selector
               etiqueta="Agregar artista"
-              value={artistaId}
-              onChange={(e) => setArtistaId(e.target.value)}
+              {...form.register('artistaId')}
+              error={form.formState.errors.artistaId?.message}
               disabled={!artistas.isSuccess || disponibles.length === 0}
             >
               <option value="">Selecciona un artista</option>
@@ -140,7 +152,7 @@ export default function AdminGestionEvento() {
           <Boton
             type="submit"
             cargando={asociar.isPending}
-            disabled={!artistaId}
+            disabled={disponibles.length === 0}
           >
             Asociar
           </Boton>
@@ -153,44 +165,36 @@ export default function AdminGestionEvento() {
         Ver tickets pagados →
       </Link>
 
-      {confirmar && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirmar-publicacion"
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
-        >
-          <div className="w-full max-w-md space-y-4 rounded-xl bg-white p-6 dark:bg-slate-900">
-            <h2 id="confirmar-publicacion" className="text-xl font-bold">
-              ¿Publicar el evento?
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              El evento quedará visible para el público.
-            </p>
-            {publicar.isError && (
-              <Aviso tipo="error">{publicar.error.message}</Aviso>
-            )}
-            <div className="flex justify-end gap-2">
-              <Boton variante="secundario" onClick={() => setConfirmar(false)}>
-                Cancelar
-              </Boton>
-              <Boton
-                cargando={publicar.isPending}
-                onClick={() =>
-                  publicar.mutate(eventCode, {
-                    onSuccess: () => {
-                      avisos.mostrar('exito', 'Evento publicado.')
-                      setConfirmar(false)
-                    },
-                  })
-                }
-              >
-                Confirmar publicación
-              </Boton>
-            </div>
-          </div>
+      <Modal
+        abierto={confirmar}
+        titulo="¿Publicar el evento?"
+        onCerrar={() => setConfirmar(false)}
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          El evento quedará visible para el público.
+        </p>
+        {publicar.isError && (
+          <Aviso tipo="error">{publicar.error.message}</Aviso>
+        )}
+        <div className="flex justify-end gap-2">
+          <Boton variante="secundario" onClick={() => setConfirmar(false)}>
+            Cancelar
+          </Boton>
+          <Boton
+            cargando={publicar.isPending}
+            onClick={() =>
+              publicar.mutate(eventCode, {
+                onSuccess: () => {
+                  avisos.mostrar('exito', 'Evento publicado.')
+                  setConfirmar(false)
+                },
+              })
+            }
+          >
+            Confirmar publicación
+          </Boton>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }

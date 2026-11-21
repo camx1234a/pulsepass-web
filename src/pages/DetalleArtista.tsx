@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { Link, useParams } from 'react-router'
 import Cargando from '../componentes/Cargando'
 import EstadoError from '../componentes/EstadoError'
@@ -9,14 +10,20 @@ import { useEventosPorArtista } from '../funcionalidades/eventos/hooks'
 import { RUTAS } from '../lib/rutas'
 import { ApiError } from '../lib/http'
 
+const idArtistaSchema = z
+  .string()
+  .regex(/^\d+$/)
+  .transform(Number)
+  .pipe(z.number().int().positive())
+
 export default function DetalleArtista() {
   const { id = '' } = useParams()
-  const parsed = Number(id)
-  const artista = useArtista(parsed)
+  const parsed = idArtistaSchema.safeParse(id)
+  const artista = useArtista(parsed.success ? parsed.data : 0)
   const stageName = artista.isSuccess ? artista.data.stageName : ''
   const eventos = useEventosPorArtista(stageName)
 
-  if (!/^\d+$/.test(id) || !Number.isInteger(parsed))
+  if (!parsed.success)
     return <PaginaCodigo codigo="404" mensaje="No encontramos este artista." />
   if (artista.isPending) return <Cargando lineas={8} />
   if (artista.isError) {

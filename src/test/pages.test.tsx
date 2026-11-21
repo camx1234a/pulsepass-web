@@ -1,3 +1,4 @@
+import axe from 'axe-core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -11,7 +12,7 @@ import Login from '../pages/Login'
 import Registro from '../pages/Registro'
 import AccionesTicket from '../componentes/AccionesTicket'
 import Navbar from '../layouts/Navbar'
-import { evento, ticket } from './datos'
+import { artista, evento, ticket } from './datos'
 import {
   AuthContext,
   type ContextoAuth,
@@ -649,6 +650,215 @@ describe('páginas y formularios requeridos', () => {
         (_, elemento) => elemento?.textContent?.includes(texto) ?? false,
       )
       expect(encontrados.length).toBeGreaterThan(0)
+    },
+  )
+})
+
+describe('flujos de interfaz con la API simulada', () => {
+  it('busca un artista por nombre exacto y permite volver al listado', async () => {
+    const nombres: string[] = []
+    server.use(
+      http.get('/api/artists/by-stage-name', ({ request }) => {
+        nombres.push(new URL(request.url).searchParams.get('stageName') ?? '')
+        return HttpResponse.json({ ...artista, id: 2, stageName: 'Sol Sur' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<ListaArtistas />)
+    await screen.findByRole('link', { name: /Luna Norte/ })
+    await user.click(screen.getByRole('button', { name: 'Buscar artista' }))
+    expect(
+      await screen.findByText('Ingresa el nombre artístico.'),
+    ).toBeVisible()
+    expect(nombres).toEqual([])
+    await user.type(
+      screen.getByRole('textbox', { name: 'Nombre artístico' }),
+      ' Sol Sur ',
+    )
+    await user.click(screen.getByRole('button', { name: 'Buscar artista' }))
+    expect(
+      await screen.findByRole('link', { name: /Sol Sur/ }),
+    ).toHaveAttribute('href', '/artistas/2')
+    expect(nombres).toEqual(['Sol Sur'])
+    await user.click(screen.getByRole('button', { name: 'Ver todos' }))
+    expect(
+      await screen.findByRole('link', { name: /Luna Norte/ }),
+    ).toBeVisible()
+  })
+
+  it('compra una entrada con el correo de la sesión y navega a la confirmación', async () => {
+    const compras: unknown[] = []
+    server.use(
+      http.post('/api/tickets', async ({ request }) => {
+        compras.push(await request.json())
+        return HttpResponse.json(ticket, { status: 201 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(
+      <Routes>
+        <Route path="/eventos/:eventCode" element={<DetalleEvento />} />
+        <Route
+          path="/compra/confirmacion/:ticketCode"
+          element={<h1>Compra confirmada</h1>}
+        />
+      </Routes>,
+      ['/eventos/' + evento.eventCode],
+      authUser,
+    )
+    await user.click(
+      await screen.findByRole('button', { name: 'Comprar entrada' }),
+    )
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de entrada' }),
+      'VIP',
+    )
+    await user.click(screen.getByRole('button', { name: 'Confirmar compra' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Compra confirmada' }),
+    ).toBeVisible()
+    expect(compras).toEqual([
+      { eventCode: evento.eventCode, userEmail: ticket.userEmail, type: 'VIP' },
+    ])
+  })
+
+  it('conserva el modal y muestra el conflicto al cancelar un ticket', async () => {
+    server.use(
+      http.patch('/api/tickets/:codigo/cancel', () =>
+        HttpResponse.json(
+          { status: 409, message: 'El ticket ya fue utilizado.' },
+          { status: 409 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(
+      <AccionesTicket ticket={ticket} email={ticket.userEmail} />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await user.click(
+      screen.getByRole('button', { name: /Confirmar cancelaci/ }),
+    )
+    expect(await screen.findByText('El ticket ya fue utilizado.')).toBeVisible()
+    expect(
+      screen.getByRole('dialog', { name: 'Cancelar ticket' }),
+    ).toBeVisible()
+  })
+})
+
+describe('criterios de aceptación del PRD en pantalla', () => {
+  it('descarta un id de artista con notación exponencial antes de consultar', async () => {
+    let peticiones = 0
+    server.use(
+      http.get('/api/artists/:id', () => {
+        peticiones += 1
+        return HttpResponse.json(artista)
+      }),
+    )
+    renderWithProviders(
+      <Routes>
+        <Route path="/artistas/:id" element={<DetalleArtista />} />
+      </Routes>,
+      ['/artistas/1e0'],
+    )
+    expect(screen.getByText('No encontramos este artista.')).toBeVisible()
+    expect(peticiones).toBe(0)
+  })
+
+  it('mantiene abierta la compra cuando el backend devuelve 409', async () => {
+    server.use(
+      http.post('/api/tickets', () =>
+        HttpResponse.json(
+          { status: 409, message: 'El evento requiere una edad mayor.' },
+          { status: 409 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(
+      <Routes>
+        <Route path="/eventos/:eventCode" element={<DetalleEvento />} />
+      </Routes>,
+      ['/eventos/' + evento.eventCode],
+      authUser,
+    )
+    await user.click(
+      await screen.findByRole('button', { name: 'Comprar entrada' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Confirmar compra' }))
+    expect(
+      await screen.findByText('El evento requiere una edad mayor.'),
+    ).toBeVisible()
+    expect(
+      screen.getByRole('dialog', { name: 'Comprar entrada' }),
+    ).toBeVisible()
+  })
+
+  it.each([403, 404])('oculta un ticket ajeno ante HTTP %s', async (status) => {
+    server.use(
+      http.get('/api/tickets/:codigo', () =>
+        HttpResponse.json({ status, message: 'Dato interno' }, { status }),
+      ),
+    )
+    renderWithProviders(
+      <Routes>
+        <Route path="/mis-tickets/:ticketCode" element={<DetalleTicket />} />
+      </Routes>,
+      ['/mis-tickets/' + ticket.ticketCode],
+      authUser,
+    )
+    expect(await screen.findByText('Ticket no disponible.')).toBeVisible()
+    expect(screen.queryByText('Dato interno')).not.toBeInTheDocument()
+  })
+
+  it('permite al personal marcar un ticket como usado y ver el resultado', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ValidacionIngreso />, ['/staff/validacion'], authStaff)
+    await user.type(
+      screen.getByRole('textbox', { name: /C.digo de ticket/ }),
+      ticket.ticketCode,
+    )
+    await user.click(screen.getByRole('button', { name: 'Buscar ticket' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'Marcar como usado' }),
+    )
+    expect(
+      await screen.findByText('Ingreso registrado correctamente.'),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'Marcar como usado' }),
+    ).not.toBeInTheDocument()
+  })
+})
+
+describe('accesibilidad estructural de las pantallas públicas', () => {
+  it.each([
+    { pagina: Login, titulo: /Inicia sesi/ },
+    { pagina: Registro, titulo: /Crea tu cuenta/ },
+    { pagina: ListaArtistas, titulo: /^Artistas$/ },
+    { pagina: CatalogoEventos, titulo: /Cartelera/ },
+  ])(
+    'revisa las reglas WCAG de $pagina.name con axe',
+    async ({ pagina: Pagina, titulo }) => {
+      const { container } = renderWithProviders(
+        <main>
+          <Pagina />
+        </main>,
+      )
+      await screen.findByRole('heading', { name: titulo, level: 1 })
+      if (Pagina === ListaArtistas)
+        await screen.findByRole('link', { name: /Luna Norte/ })
+      if (Pagina === CatalogoEventos) await screen.findByText(evento.name)
+      const resultado = await axe.run(container, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] },
+        rules: { 'color-contrast': { enabled: false } },
+      })
+      expect(
+        resultado.violations.map(({ id, nodes }) => ({
+          id,
+          elementos: nodes.map(({ target }) => target),
+        })),
+      ).toEqual([])
     },
   )
 })

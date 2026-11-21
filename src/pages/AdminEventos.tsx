@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BadgeEstado } from '../componentes/Badge'
@@ -14,17 +17,19 @@ import {
 import { ApiError } from '../lib/http'
 import { RUTAS } from '../lib/rutas'
 
+const formularioSchema = z.object({
+  codigo: z.string().trim().min(1, 'Ingresa el código del evento.'),
+})
+
 export default function AdminEventos() {
-  const [codigo, setCodigo] = useState('')
+  const form = useForm({
+    resolver: zodResolver(formularioSchema),
+    defaultValues: { codigo: '' },
+  })
   const [buscado, setBuscado] = useState('')
   const navigate = useNavigate()
   const evento = useEvento(buscado)
   const creados = useEventosCreadosEnSesion()
-
-  function buscar(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setBuscado(codigo.trim())
-  }
 
   return (
     <div className="space-y-7">
@@ -45,20 +50,18 @@ export default function AdminEventos() {
       <Tarjeta className="space-y-4 p-5">
         <h2 className="text-lg font-bold">Buscar evento por código</h2>
         <form
-          onSubmit={buscar}
+          onSubmit={form.handleSubmit(({ codigo }) => setBuscado(codigo))}
           className="flex flex-col gap-3 sm:flex-row sm:items-end"
         >
           <div className="flex-1">
             <Campo
               etiqueta="Código del evento"
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
+              {...form.register('codigo')}
+              error={form.formState.errors.codigo?.message}
               placeholder="CMF-2026"
             />
           </div>
-          <Boton type="submit" disabled={!codigo.trim()}>
-            Abrir evento
-          </Boton>
+          <Boton type="submit">Abrir evento</Boton>
         </form>
         {buscado && evento.isPending && <Cargando lineas={2} />}
         {buscado && evento.isError && (

@@ -50,7 +50,11 @@ export default function Campo({
         </p>
       )}
       {error && (
-        <p id={idError} className="text-xs text-red-700">
+        <p
+          id={idError}
+          role="alert"
+          className="text-xs text-red-700 dark:text-red-400"
+        >
           {error}
         </p>
       )}

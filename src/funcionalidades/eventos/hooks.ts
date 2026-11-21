@@ -20,11 +20,24 @@ function actualizarEventoCreado(
   queryClient.setQueryData(KEY_CREADOS, [...otros, evento])
 }
 
+function actualizarSiCreado(
+  queryClient: ReturnType<typeof useQueryClient>,
+  evento: Evento,
+) {
+  queryClient.setQueryData<Evento[]>(KEY_CREADOS, (actuales) =>
+    actuales?.map((item) =>
+      item.eventCode === evento.eventCode ? evento : item,
+    ),
+  )
+}
+
 export async function invalidarCachePublicacion(
   queryClient: ReturnType<typeof useQueryClient>,
   evento: Evento,
 ) {
+  actualizarSiCreado(queryClient, evento)
   await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['eventos', 'artista'] }),
     queryClient.setQueryData(['eventos', evento.eventCode], evento),
     queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
   ])
@@ -34,8 +47,8 @@ export async function invalidarCacheAsociacion(
   queryClient: ReturnType<typeof useQueryClient>,
   evento: Evento,
 ) {
+  actualizarSiCreado(queryClient, evento)
   await Promise.all([
-    actualizarEventoCreado(queryClient, evento),
     queryClient.setQueryData(['eventos', evento.eventCode], evento),
     queryClient.invalidateQueries({ queryKey: ['eventos', 'publicados'] }),
     queryClient.invalidateQueries({ queryKey: ['eventos', 'artista'] }),

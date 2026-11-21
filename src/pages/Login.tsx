@@ -37,15 +37,15 @@ export default function Login() {
       if (caught instanceof ApiError) {
         if (caught.status === 401) setError('Credenciales inválidas.')
         else if (caught.status === 400) {
+          let hayCampos = false
           Object.entries(caught.details).forEach(([campo, mensaje]) => {
             if (campo === 'identifier' || campo === 'password') {
+              hayCampos = true
               form.setError(campo, { message: mensaje })
             }
           })
-          if (Object.keys(caught.details).length === 0) setError(caught.message)
-        } else if (caught.status === 0 || caught.status >= 500)
-          setError('Inténtalo más tarde.')
-        else setError(caught.message)
+          if (!hayCampos) setError(caught.message)
+        } else setError(caught.message)
       } else {
         setError('Inténtalo más tarde.')
       }

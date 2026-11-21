@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router'
 import Aviso from '../componentes/Aviso'
 import { BadgeEstado } from '../componentes/Badge'
@@ -18,10 +20,17 @@ import { formatearCOP } from '../lib/formato'
 import { RUTAS } from '../lib/rutas'
 import { useAvisosGlobales } from '../lib/avisos'
 
+const formularioSchema = z.object({
+  codigo: z.string().trim().min(1, 'Ingresa el código del evento.'),
+})
+
 export default function TicketsPagadosEvento() {
   const { eventCode = '' } = useParams()
-  const [codigo, setCodigo] = useState(eventCode)
-  const [eventCodeActivo, setEventCodeActivo] = useState(eventCode)
+  const form = useForm({
+    resolver: zodResolver(formularioSchema),
+    values: { codigo: eventCode },
+  })
+  const eventCodeActivo = eventCode
   const navigate = useNavigate()
   const tickets = useTicketsPagadosPorEvento(eventCodeActivo)
   const usar = useUsarTicket()
@@ -65,15 +74,6 @@ export default function TicketsPagadosEvento() {
     },
   ]
 
-  function buscar(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (codigo.trim()) {
-      const limpio = codigo.trim()
-      setEventCodeActivo(limpio)
-      navigate(RUTAS.staffTicketsPagados(limpio))
-    }
-  }
-
   return (
     <div className="space-y-6">
       <header>
@@ -83,20 +83,22 @@ export default function TicketsPagadosEvento() {
         <h1 className="mt-1 text-3xl font-bold">Tickets pagados</h1>
       </header>
       <form
-        onSubmit={buscar}
+        onSubmit={form.handleSubmit(({ codigo }) =>
+          navigate(RUTAS.staffTicketsPagados(codigo)),
+        )}
         className="flex flex-col gap-3 sm:flex-row sm:items-end"
       >
         <div className="flex-1">
           <Campo
             etiqueta="Código del evento"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
+            {...form.register('codigo')}
+            error={form.formState.errors.codigo?.message}
             placeholder="CMF-2026"
           />
         </div>
         <Boton type="submit">Consultar evento</Boton>
       </form>
-      {tickets.isPending && <Cargando lineas={5} />}
+      {eventCodeActivo && tickets.isPending && <Cargando lineas={5} />}
       {tickets.isError && (
         <EstadoError
           mensaje={

@@ -52,9 +52,7 @@ export default function Registro() {
             }
           })
           if (!hayCampos) setErrorGeneral(caught.message)
-        } else if (caught.status === 0 || caught.status >= 500)
-          setErrorGeneral('Inténtalo más tarde.')
-        else setErrorGeneral(caught.message)
+        } else setErrorGeneral(caught.message)
       } else {
         setErrorGeneral('Inténtalo más tarde.')
       }
